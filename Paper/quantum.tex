@@ -1,0 +1,208 @@
+\documentclass[aps,prd,nofootinbib,twocolumn,reprint,superscriptaddress,showpacs,showkeys,longbibliography]{revtex4-1}
+\pdfoutput=1
+\usepackage {amsmath}
+\usepackage {amssymb}
+\usepackage {amsfonts}
+\usepackage {amsthm}
+\usepackage {mathrsfs}
+\usepackage {natbib}
+\usepackage {latexsym}
+\usepackage {graphicx}
+\usepackage {dsfont}
+\usepackage {txfonts}
+\usepackage {rotating}
+\usepackage {wasysym}
+\usepackage {multirow}
+\usepackage {hhline}
+\usepackage {graphicx}
+\usepackage {hyperref}
+\usepackage[dvipsnames,usenames]{color}
+\usepackage {bm}
+\usepackage{appendix}
+\usepackage{acronym}
+\usepackage{dcolumn}   % needed for some tables
+\usepackage{enumitem}
+\usepackage{bigdelim}
+\usepackage {url}
+\usepackage{caption}
+\usepackage {subcaption}
+\usepackage{multirow}
+% REMINDER TO CHRIS: subcaption.sty might need to be included,
+% or else the package removed; isn't universally installed -- GDM
+
+\usepackage{framed}
+
+%% ----- macros lifted from aastex.cls
+\newcommand\arcdeg{\mbox{$^\circ$}}%
+\newcommand\arcmin{\mbox{$^\prime$}}%
+\newcommand{\bra}[1]{\langle #1|}
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\braket}[2]{\langle #1|#2\rangle}
+
+%% ----- some handy shortcuts
+\newcommand{\dcc}{LIGO-XXXXXXXXX}
+%% -----
+\newcommand{\cm}[1]{\textbf{\textcolor{red}{CM: #1}}}
+\newcommand{\dg}[1]{\textbf{\textcolor{blue}{DG: #1}}}
+%% ----- Version that makes the comments disappear
+%% -----
+\newcommand\marginnote[1]{%
+    \mbox{}\marginpar{\raggedleft\hspace{0pt}\footnotesize\textcolor{green}
+\raggedright\hspace{0pt}\footnotesize\textcolor{green}
+    {#1}}}
+%% ----- macros for cross-references
+
+%% ----- input git-version tag
+\input{tag.tex}
+
+%% ----- define shorthand variables
+
+\begin{document}
+
+\title{Quantum matched filtering}
+
+% NOTE TO EVERYBODY: we should decide on whether to make
+% names full or initialized -- GDM
+\author{Sijia Gao}
+\email{s.gao.2@research.gla.ac.uk}
+\affiliation{SUPA, School of Physics and Astronomy, University of Glasgow, Glasgow G12 8QQ, United Kingdom}
+\author{Fergus Hayes}
+\email{f.hayes.1@research.gla.ac.uk}
+\affiliation{SUPA, School of Physics and Astronomy, University of Glasgow, Glasgow G12 8QQ, United Kingdom}
+\author{Sarah Croke}
+\affiliation{SUPA, School of Physics and Astronomy, University of Glasgow, Glasgow G12 8QQ, United Kingdom}
+\author{J.~Veitch}
+\affiliation{SUPA, School of Physics and Astronomy, University of Glasgow, Glasgow G12 8QQ, United Kingdom}
+\author{C.~Messenger}
+\affiliation{SUPA, School of Physics and Astronomy, University of Glasgow, Glasgow G12 8QQ, United Kingdom}
+
+\date{\today}
+\date{\commitDATE\\\mbox{\small{\commitID} \commitSTATUS}\\\mbox{\dcc}}
+
+\begin{abstract}
+We did a quantum thing
+\end{abstract} 
+
+\maketitle
+
+\acrodef{NS}[NS]{Neutron Star}
+\acrodef{GW}[GW]{gravitational-wave}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}\label{sec:intro}
+
+\begin{itemize}
+\item GW introduction
+\item Quantum computing introduction
+\item summary of what this paper intends to do 
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background}\label{sec:background}
+
+\subsection{Matched-filtering}
+
+\begin{itemize}
+\item derive matched-filtering as a semi-optimal statistic
+\item What problem it solves
+\end{itemize}
+
+\subsection{Grovers algorithm}
+
+\begin{itemize}
+\item introduce Grover's algorithm
+\item What problem it solves
+\item Why are we using Grovers - the largest parameter is the number of
+templates (not the dataset size)
+\item introduce the notion of the Oracle
+\item introduce phase kick-back
+\item quantum counting - phase estimation and qunatum Fourier transforms
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Quantum psuedo-code}\label{sec:psuedocode}
+
+\begin{itemize}
+\item How to construct the Oracle
+\item A counting argument for the complexity - templates are indices
+\item discuss template erasure
+\item actually show the psuedo-code representation
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example using Qiskit}\label{sec:qizkitexample}
+
+\begin{itemize}
+\item define model (small number of qubits and exact matching)
+\item focus on results
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example on Sine wave (python)}\label{sec:sineexample}
+
+\begin{itemize}
+\item continuous wave GW signal motivation
+\item why we don't just use the QFT? Our real CW signals (and CBCs) are not monochromatic
+\item Define sine wave model
+\item focus on showing results - number of steps taken
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{CBC application example}\label{sec:cbcexample}
+
+\begin{itemize}
+\item define the CBC waveform model
+\item focus on results - compare to GWOSC GW150914 data
+\item make the number of steps clear (~ root N operations)
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Practical considerations}\label{sec:intro}
+
+Discuss things about practicalities for the future. How many qubits are needed
+etc.. 
+
+\begin{itemize}
+\item space requirements on quantum computer
+\item describe the current state of the art in quantum processors
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}\label{sec:discussion}
+
+\begin{itemize}
+\item Summarise the entire paper first
+\item highlight the parts of interest to Quantum and GW fields separately
+\item Discuss limitations of what we've done
+\item Talk about future work
+\item Talk about the future of Quantum computers and the future GW data
+analysis challenges
+\item It's not just GWs though - data analysis searches in general
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{acknowledgments}
+hello
+\end{acknowledgments}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Complete MDC results\label{sec:fullresults}}
+
+
+% Create the reference section using BibTeX:
+\bibliography{masterbib}
+
+\end{document}
