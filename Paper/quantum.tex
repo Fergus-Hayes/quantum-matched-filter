@@ -1,32 +1,34 @@
 \documentclass[aps,prd,nofootinbib,twocolumn,reprint,superscriptaddress,showpacs,showkeys,longbibliography]{revtex4-1}
 \pdfoutput=1
-\usepackage {amsmath}
-\usepackage {amssymb}
-\usepackage {amsfonts}
-\usepackage {amsthm}
-\usepackage {mathrsfs}
-\usepackage {natbib}
-\usepackage {latexsym}
-\usepackage {graphicx}
-\usepackage {dsfont}
-\usepackage {txfonts}
-\usepackage {rotating}
-\usepackage {wasysym}
-\usepackage {multirow}
-\usepackage {hhline}
-\usepackage {graphicx}
-\usepackage {hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{natbib}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{dsfont}
+\usepackage{txfonts}
+\usepackage{rotating}
+\usepackage{wasysym}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage[dvipsnames,usenames]{color}
-\usepackage {bm}
+\usepackage{bm}
 \usepackage{appendix}
 \usepackage{acronym}
 \usepackage{dcolumn}   % needed for some tables
 \usepackage{enumitem}
 \usepackage{bigdelim}
-\usepackage {url}
+\usepackage{url}
 \usepackage{caption}
-\usepackage {subcaption}
+\usepackage{subcaption}
 \usepackage{multirow}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 % REMINDER TO CHRIS: subcaption.sty might need to be included,
 % or else the package removed; isn't universally installed -- GDM
 
@@ -132,7 +134,7 @@ Although in the actual algorithm we need the ancilla register for the oracle, in
 where $\frac{1}{\sqrt{N}}$ represents the amplitude of each state in the superposition. This ensures that each state has the same probability of $\frac{1}{N}$ of being found. We shall start with the simplest situation where there is exactly one desired match, $\ket{w}$. The rest of the basis, i.e. the bad solutions can be marked as $\ket{s'}$, which are perpendicular to the state $\ket{w}$. We can rewrite the input state $\ket{s}$ using the new expression as:
 \begin{equation}
     \label{so}
-    \ket{s}=\frac{1}{\sqrt{N}}\ket{w}+\frac{\sqrt{N}-1}{\sqrt{N}}\ket{s'}.
+    \ket{s}=\frac{1}{\sqrt{N}}\ket{w}+\frac{\sqrt{N-1}}{\sqrt{N}}\ket{s'}.
 \end{equation}
 It is obvious that in order to decrease the number of enquiries needed to achieve the correct solution, we need to increase the amplitude of the state $\ket{w}$. We can also use a two dimensional vector graph to represent the input register $\ket{s}$ as shown in Fig.~\ref{2d0}A, where the angle is defined as:
 \begin{equation}
@@ -142,7 +144,7 @@ It is obvious that in order to decrease the number of enquiries needed to achiev
 Our goal, in the context, is to rotate state $\ket{s}$ to make it parallel, or closer to parallel, to state $\ket{w}$. After applying the oracle $U_f$, the input state $\ket{s}$ becomes:
 \begin{equation}
     \label{ufs}
-    U_f\ket{s}=-\frac{1}{\sqrt{N}}\ket{w}+\frac{\sqrt{N}-1}{\sqrt{N}}\ket{s'},
+    U_f\ket{s}=-\frac{1}{\sqrt{N}}\ket{w}+\frac{\sqrt{N-1}}{\sqrt{N}}\ket{s'},
 \end{equation}
 which is equivalent to flip the input state $\ket{s}$ with respect to the horizontal axis $\ket{s'}$, as represented in Fig.~\ref{2d0}B. This procedure itself however, does not make the desired state $\ket{w}$ more favourable in the measurement. Therefore, an additional diffusion unitary operator is applied as the third step, which is defined as:
 \begin{equation}
@@ -206,6 +208,50 @@ Still, in order to maximise the amplitude of the desired templates, we need to a
 \end{equation}
 However, in most cases we do not know the number of the desired templates. In this case we can use a variant of Grover's algorithm known as quantum counting\cite{brassard1998quantum}. As we have discussed above, each step in Grover's algorithm is a rotation through an angle $2 \theta_k$, which is now unknown. Quantum phase estimation is a well-known quantum algorithm which allows us to estimate just such an unknown angle of rotation. We don't describe this in detail here, but refer the interested reader to \cite{nielsen2002quantum}. For large number of templates N, the phase estimation part does not add extra complexity in the computation time \cite{brassard1998quantum}. In fact, it can find the period of a function in a time $O(log^3P)$, where P is a n-bit number representing the period. The extra computation time is polynomial in n.\cite{barnett2009quantum}
 
+\subsection{Quantum counting}
+However, in most cases we do not know the number of the desired templates. 
+ Complementing Grover's algorithm with one of the most important subroutines in quantum computing, quantum phase estimation (QPE), quantum counting algorithm is able to produce the number of desired templates in the database and therefore determining the number of application of Grover's algorithm\cite{brassard1998quantum}. 
+ \newline\newline Recall that we introduce the Grover's operator $\hat{G}$ as a rotation in the two-dimension space spanned by $\ket{w_t}$ and $\ket{s'_t}$ in Eq.\ref{Gmatrix}, it is obvious that the eigenvectors for it would be:
+\begin{equation}
+  \label{Geigenvector}  
+    \ket{s_+}=\begin{pmatrix}
+\frac{i}{\sqrt{2}} \\
+\frac{1}{\sqrt{2}}
+\end{pmatrix}, \qquad
+\ket{s_-}=\begin{pmatrix}
+\frac{-i}{\sqrt{2}} \\
+\frac{1}{\sqrt{2}}
+\end{pmatrix},
+\end{equation}
+with eigenvalues of $e^{i2\theta_t}$ and $e^{-i2\theta_t}$ respectively. Therefore the problem of finding the number of the desired templates is transformed to a eigenvalue estimation problem, which is what QPE designed to solve.  
+\newline \newline A set of integers ranging from  $0$ to $2^N-1$ can be represented by N qubits as:
+\begin{equation}
+    \label{H0N}
+    \hat{H}^N\ket{0}=\frac{1}{2^{\frac{N}{2}}}(\ket{0}+\ket{1})\otimes...\otimes(\ket{0}+\ket{1})=\sum_{a=0}^{2^N-1}\ket{a},
+\end{equation}
+which inspired a new set of computational basis $\ket{\Tilde{b}}$ using quantum Fourier transform (QFT)\cite{coppersmith2002approximate}:
+\begin{equation}
+\begin{split}
+   \label{QFT}
+    \ket{\Tilde{b}}=\hat{U}_{QFT}\ket{b}&=\sum_{a=0}^{2^N-1}e^{i\frac{2\pi ab}{2^n}}\ket{a}\\
+    &=\frac{1}{2^{\frac{N}{2}}}(\ket{0}+e^{i\pi b}\ket{1})\otimes(\ket{0}+e^{i\frac{\pi b}{2}}\ket{1})\otimes...\otimes(\ket{0}+e^{i\frac{\pi b}{2^{N-1}}}\ket{1}).
+\end{split}
+\end{equation}
+This motivated us to introduce an extra register with N qubits in superposition of state $\ket{+}$ as the control register, and apply controlled Grover's gate $n$ times to the input state:
+\begin{equation}
+\begin{split}
+   \label{CG}
+    \sum_{a=0}^{2^N-1}C\text{-}\hat{G}^a\ket{a}\otimes \ket{s_t}&=\sum_{a=0}^{2^N-1}e^{i2\theta_t a}\ket{a}\otimes\ket{s_t}\\
+    &=\frac{1}{2^{\frac{N}{2}}}(\ket{0}+e^{i2\theta_t }\ket{1})\otimes(\ket{0}+e^{i2\theta_t2^1}\ket{1})\otimes...\otimes(\ket{0}+e^{i2\theta_t2^{N-1}}\ket{1})\otimes\ket{s_t}.
+\end{split}
+\end{equation}
+Comparing Eq.~\ref{QFT} and Eq.~\ref{CG}, we naturally proceed to apply an inverse QFT to Eq.~\ref{CG} to extract the eigenvalue $\theta_t$ containied in the phase information.
+\begin{equation}
+   \label{InverQFT}
+   \hat{U}^{-1}_{QFT}\sum_{a=0}^{2^N-1}e^{i2\theta_t a}\ket{a}\otimes\ket{s_t}=\frac{1}{2^{N}}\sum_{a=0}^{2^N-1} \sum_{b=0}^{2^N-1} e^{i2\pi a(\frac{\theta_t}{\pi}-\frac{b}{2^N})}\ket{b}\otimes\ket{s_t}.%this part can elaborate in thesis according to steve's 7.38
+\end{equation}
+Within the basis $\{\ket{b}\}$, the state $\ket{b}$ satisfies $\frac{\theta_t}{\pi}-\frac{b}{2^N}=0$ will be the most probable state in the measurement. Even in situations that $\frac{\theta_t}{2^N\pi}$ is not an integer, the system would still peak near the state $b=\frac{\theta_t}{2^N\pi}$ with a probability higher than $40\%$\cite{nielsen2011quantum}, rather significant considering the number of states being $2^N$.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Quantum psuedo-code}\label{sec:psuedocode}
@@ -216,14 +262,95 @@ However, in most cases we do not know the number of the desired templates. In th
 \item discuss template erasure
 \item actually show the psuedo-code representation
 \end{itemize}
+In the previous section we introduced Grover's algorithm and quantum phase estimation algorithm, and how, in principle, they can speed up the process of searching for one or more desired matches in gravitational wave research. In this section we are going to present the pseudo code of this implementation and prove that we can effectively construct the required oracle. We will also present relevant calculation and compare it with the classical cost to prove the speed up.
+\newline \newline Our initial assumption being all gates have the same computational cost, with which estimating the overall computational cost is the same as counting the number of gates. Suppose there are N templates. Classically, for each template we suppose it takes $k_1$ steps to compute the template from all the parameters, and $k_2$ steps to match the template to the data. In this way, to match all templates we need $N \cdot (k_1+k_2)$ steps before any search algorithm is applied. A typical classical search algorithm for N templates, in the worst scenario would cost $N-1$ steps. So the total cost would be $N \cdot (k_1+k_2+1)-1$.
+\newline \newline The quantum search algorithm we will present is based on Grover's algorithm and quantum phase estimation. In Algorithm. \ref{GroGate}, we present the pseudo code to construct the Grover's gate.
+\begin{algorithm}[h]
+\caption{Grover's Gate}\label{GroGate}
+\begin{algorithmic}
 
+\Function{Grover's Search algorithm}{N, $\ket{Data}$}
+\label{GroverPseudo}
+\Procedure{Oracle Construction}{}
+\State \emph{Creating templates}:
+\ForAll{$i<N$}
+    \State{$ \ket{i}\ket{0} \gets \ket{i}\ket{T_i}$}
+\EndFor
+\State \emph{Comparison with the data}:
+    \State$\ket{i}\ket{Data}\ket{T_i}\ket{0} \gets \ket{i}\ket{Data}\ket{T_i}\ket{F(i)}$
+        \If {$F(i) <  Threshold$}
+            \State $f(i)=0$
+        \Else 
+            \State $f(i)=1$
+       %\State \textbf{close};
+        \EndIf
+\State $\ket{i}\ket{Data}\ket{T_i}\ket{F(i)} \gets (-1)^{f(i)}\ket{i}\ket{Data}\ket{T_i}\ket{F(i)} $
+\State \emph{Dis-entangling registers}:
+    \State $(-1)^{f(i)}\ket{i}\ket{Data}\ket{T_i}\ket{F(i)} \gets (-1)^{f(i)}\ket{i}\ket{Data}\ket{T_i}\ket{0}$
+    \State $(-1)^{f(i)}\ket{i}\ket{Data}\ket{T_i}\ket{0}\gets (-1)^{f(i)}\ket{i}\ket{T_i}\ket{0}\ket{0}$
+\EndProcedure
+\Procedure{Diffusion Operator}{}
+\State $ (-1)^{f(i)}\ket{i}\ket{T_i}  \gets \hat{\rm I}\otimes(2\ket{T_i}\bra{T_i}-\hat{\rm I})(-1)^{f(i)}\ket{i}\ket{T_i}$
+\EndProcedure
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+\newline\newline \textbf{Discussion:} 
+\begin{algorithm}[h]
+\caption{Grover's algorithm implementation on template searching}\label{GroPseudo}
+\begin{algorithmic}[1]
+\State $\textit{n} \gets \text{number of }\textit{precision digits}$
+\State $\textit{N} \gets \text{number of }\textit{templates}$
+\State $i \gets \text{index of} \textit{ templates}$
+\State \emph{Creating templates}:
+\ForAll{$i<N$}
+\State{$ \ket{i}\ket{0} \gets \ket{i}\ket{T_i}$}
+\EndFor
+
+\Procedure{Quantum Phase estimation}{n}
+\label{QPE}
+\State \emph{Creating the counting register }:
+\State{$ \ket{i}\ket{T_i}\gets \ket{0}^n\ket{i}\ket{T_i}$}
+\State{$ \ket{0}^n\ket{i}\ket{T_i}\gets \frac{1}{2^{n/2}}(\ket{0}+\ket{1})^n\otimes\ket{i}\ket{T_i}$}
+\State \emph{Controlled Grover' gate}:
+\ForAll{$a<2^n$}
+   \State $j \gets a$
+    \Repeat
+        \State Algorithm.\ref{GroGate} \Call{Grover's Gate}{N, $\ket{Data}$}, $j--$
+    \Until{$j==0$}
+\EndFor
+\State$\frac{1}{2^{n/2}}(\ket{0}+\ket{1})^n\otimes\ket{i}\ket{T_i} \gets \frac{1}{2^{n/2}}\sum e^{2i\theta_t a}\ket{a}\otimes\ket{i}\ket{T_i} $
+\State \emph{Inverse Quantum Fourier Transform}:
+    \State$\frac{1}{2^{n/2}}\sum e^{2i\theta_t a}\ket{a}\otimes\ket{i}\ket{T_i}\gets \frac{1}{2^{n}}\sum \sum e^{2\pi a i(\frac{\theta_t }{\pi}-\frac{x}{2^n})}\ket{x}\otimes\ket{i}\ket{T_i}$
+\State \emph{Measurement}:
+    \State$x-\frac{2^n\theta_t }{\pi}=0 $ %constructive interference across all m
+\State \emph{Output}:
+    \State$\frac{\theta_t }{\pi}\gets\frac{x}{2^n} $
+%$(2k_t+1)=\frac{\pi}{2\theta_t}$ $k_t=\frac{\pi}{4\theta_t}-1/2$
+\State $k_t \gets \textbf{Floor}[\frac{2^n}{4x}-\frac{1}{2}]$
+\EndProcedure
+
+\Procedure{Search}{}
+    \Repeat
+        \State Algorithm.\ref{GroGate} \Call{Grover's Gate}{N, $\ket{Data}$}, $k_t--$
+    \Until{$k_t==0$}
+    \State \emph{Output}:
+    \State $i_{correct}$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Example using Qiskit}\label{sec:qizkitexample}
 
 \begin{itemize}
 \item define model (small number of qubits and exact matching)
+\item one template matching
+\item multiple templates matching
 \item focus on results
+\item run on the actual quantum processor and compare the results, efficiency and gate costs
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
