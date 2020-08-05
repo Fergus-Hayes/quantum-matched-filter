@@ -46,6 +46,8 @@
 %% -----
 \newcommand{\cm}[1]{\textbf{\textcolor{red}{CM: #1}}}
 \newcommand{\dg}[1]{\textbf{\textcolor{blue}{DG: #1}}}
+\newcommand{\jv}[1]{\textbf{\textcolor{green}{JV: #1}}}
+
 %% ----- Version that makes the comments disappear
 %% -----
 \newcommand\marginnote[1]{%
@@ -113,14 +115,15 @@ We did a quantum thing
 
 \subsection{Grovers algorithm}
 
-The search for the closest matching template or templates in gravitational wave detection may be thought of as belonging to the class of generic search problems. For such problems, we wish to identify a ``marked" solution, i.e. one satisfying a certain set of criteria, from within an unstructured database of possible solutions. In fact, any problem for which it is easy to verify a solution, but difficult to find one may be thought of as a search problem, also known as NP problems. Indeed for certain NP-hard problems the best known classical algorithms offer limited improvement over brute-force search.\cite{bennett1997strengths} In the case of match filtering, we can consider the database to be made up of all possible templates, and we are searching for one or more for which the match with the data is above a specified threshold. Typically the number of templates is much larger than the complexity of checking whether a given template is a match, and is the limiting factor determining the time needed for match filtering in gravitational wave data analysis. For a database with $N$ entries and exactly one good solution, we need to check $\frac{N}{2}$ entries on average before finding the marked entry. In other words, for generic search problems, the required search time for a classical algorithm is $O(N)$ \cite{barnett2009quantum}. Grover's algorithm, proposed by Lov Grover in 1996, provides a polynomial speed-up for these problems, finding a solution in $O(\sqrt{N})$ search time \cite{grover1996fast}. It was later proved that this is asymptotically optimal; $\Omega(\sqrt{N})$ queries are required for a quantum algorithm to succeed with high probability \cite{bennett1997strengths}.
-\newline\newline Grover's algorithm establishes a gap in query complexity between classical and quantum computers, in an oracle model. That is, it assumes that we have access to an oracle, a``black box" which computes a desired function, but not necessarily a description of the function itself. The query complexity is then given by the number of calls required to the oracle. To cast the search problem as an oracle problem, we can define a function $f(x)$, according to which $f(x)=1$ if and only if $x$ is our marked entry in the database, %\smc{\sout{also known as the basis state,} (this is only true in the quantum case - we're not talking about the quantum case yet - I've moved this to introduce the basis state a bit later)}
-otherwise $f(x)=0$. In the quantum case, we imagine we have a quantum black box or oracle $U_f$ that can perform the following procedure:
+The search for the closest matching template or templates in gravitational wave detection may be thought of as belonging to the class of generic search problems. For such problems, we wish to identify a ``marked" solution, i.e. one satisfying a certain set of criteria, from within an unstructured database of possible solutions. In fact, any problem for which it is easy to verify a solution, but difficult to find one may be thought of as a search problem, also known as NP problems. Indeed for certain NP-hard problems the best known classical algorithms offer limited improvement over brute-force search~\cite{bennett1997strengths}. In the case of match filtering, we can consider the database to be made up of all possible templates, and we are searching for one or more for which the match with the data is above a specified threshold. Typically the number of templates is much larger than the complexity of checking whether a given template is a match \jv{What is the complexity of checking whether a given template is a match? How are they comparable?}, and is the limiting factor determining the time needed for match filtering in gravitational wave data analysis. For a database with $N$ entries and exactly one good solution, we need to check $\frac{N}{2}$ entries on average before finding the marked entry. In other words, for generic search problems, the required search time for a classical algorithm is $O(N)$ \cite{barnett2009quantum}. Grover's algorithm, proposed by Lov Grover in 1996, provides a polynomial speed-up for these problems, finding a solution in $O(\sqrt{N})$ search time~\cite{grover1996fast}. It was later proved that this is asymptotically optimal; $\Omega(\sqrt{N})$ queries are required for a quantum algorithm to succeed with high probability~\cite{bennett1997strengths}.
+\newline\newline Grover's algorithm establishes a gap in query complexity between classical and quantum computers, in an oracle model. That is, it assumes that we have access to an oracle, a ``black box'' which computes a desired function, but not necessarily a description of the function itself. The query complexity is then given by the number of calls required to the oracle. To cast the search problem as an oracle problem, we can define a function $f(x)$, according to which $f(x)=1$ if and only if $x$ is our marked entry in the database, otherwise $f(x)=0$. In the quantum case, we imagine we have a quantum black box or oracle $U_f$ that can perform the following procedure:
 \begin{equation}
     \label{Ufa}
     U_f: \ket{x}\otimes\ket{b}\longmapsto\ket{x}\ket{b \oplus f(x)},
 \end{equation}
-where $\ket{x}$ is the input register containing the input $x$ encoded as a computational basis state, and $\ket{b}$ is an ancilla register into which the output is written. We see that for $b=0$ the evaluation of the function is contained here. The key difference in the quantum case is that we can query the oracle in superposition, that is, we can prepare the input register in a superposition over all input states. In the rest of this section we outline Grover's algorithm, before addressing the problem of how to construct an oracle for match filtering in the following section. Grover's algorithm is covered in several introductory quantum computing texts, e.g. \cite{barnett2009quantum, nielsen2002quantum,kaye2007introduction}. We begin by noting that if we prepare our ancilla register in the state $\ket{-}=\frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$, the operation given in Eq.~\ref{Ufa} is equivalent to the following procedure on the input register alone:
+where $\ket{x}$ is the input register containing the input $x$ encoded as a computational basis state, and $\ket{b}$ is an ancilla register into which the output is written. We see that for $b=0$ the evaluation of the function is contained here. The key difference in the quantum case is that we can query the oracle in superposition, that is, we can prepare the input register in a superposition over all input states. In the rest of this section we outline Grover's algorithm, before addressing the problem of how to construct an oracle for match filtering in the following section.
+
+Grover's algorithm is covered in several introductory quantum computing texts, e.g. \cite{barnett2009quantum, nielsen2002quantum,kaye2007introduction}. We begin by noting that if we prepare our ancilla register $\ket{b}$ in the state $\ket{-}=\frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$, the operation given in Eq.~\ref{Ufa} is equivalent to the following procedure on the input register alone:
 \begin{equation}
     \label{Uf}
     U_f: \ket{x}\longmapsto(-1)^{f(x)}\ket{x}.
@@ -129,17 +132,18 @@ Although in the actual algorithm we need the ancilla register for the oracle, in
 \newline\newline Considering the problem of the search of the closest template, we represent the position of each template in the database as a computational basis state $\ket{i}$ and prepare the input register in an equal superposition over all positions $\ket{s}$. Suppose there are $N$ templates, the input register can be expressed as:
 \begin{equation}
     \label{soo}
-    \ket{s}=\frac{1}{\sqrt{N}}\sum^{N-1}_{0} \ket{i},
+    \ket{s}=\frac{1}{\sqrt{N}}\sum^{N}_{1} \ket{i},
 \end{equation}
 where $\frac{1}{\sqrt{N}}$ represents the amplitude of each state in the superposition. This ensures that each state has the same probability of $\frac{1}{N}$ of being found. We shall start with the simplest situation where there is exactly one desired match, $\ket{w}$. The rest of the basis, i.e. the bad solutions can be marked as $\ket{s'}$, which are perpendicular to the state $\ket{w}$. We can rewrite the input state $\ket{s}$ using the new expression as:
 \begin{equation}
     \label{so}
     \ket{s}=\frac{1}{\sqrt{N}}\ket{w}+\frac{\sqrt{N-1}}{\sqrt{N}}\ket{s'}.
 \end{equation}
+\jv{should $\sqrt{N}-1$ on the second numerator above not be $N-1$, from the sum in Eqn~\ref{soo}? Or perhaps $\sqrt{N-1}$ to preserve normalisation?}
 It is obvious that in order to decrease the number of enquiries needed to achieve the correct solution, we need to increase the amplitude of the state $\ket{w}$. We can also use a two dimensional vector graph to represent the input register $\ket{s}$ as shown in Fig.~\ref{2d0}A, where the angle is defined as:
 \begin{equation}
 \label{theta}
-   \theta=\arcsin\braket{w|s}=\arcsin {\frac{1}{\sqrt{N}}}.
+   \theta=\arcsin\braket{w}{s} = \arcsin {\frac{1}{\sqrt{N}}}.
 \end{equation}
 Our goal, in the context, is to rotate state $\ket{s}$ to make it parallel, or closer to parallel, to state $\ket{w}$. After applying the oracle $U_f$, the input state $\ket{s}$ becomes:
 \begin{equation}
@@ -163,8 +167,8 @@ From Eq.~\ref{usufs} which it is obvious that the probability of $\ket{w}$ being
 \end{equation}
 This shows the diffusion operator is equivalent of flipping the $U_f\ket{s}$ state with respect to the $\ket{s}$ state, as shown in Fig.~\ref{2d0}C.
 \begin{figure}[h]
-{\caption{A) The red line represents the input initial state $\ket{s}$ represented as a vector in a plane spanned by the desired match $\ket{s}$ and undesired match $\ket{s'}$. B) The blue line represents the result of the oracle acting on the initial state $\ket{s}$ which now represented by the red dot dashed line. C) The green line represents the result of the diffusion operator acting on the result state in B, $U_f\ket{s}$ which now represented by the blue dotted line.   }\label{2d0}}
 {\includegraphics[width=0.45\textwidth]{Grover.png}}
+{\caption{A) The red line represents the input initial state $\ket{s}$ represented as a vector in a plane spanned by the desired match $\ket{s}$ and undesired match $\ket{s'}$. B) The blue line represents the result of the oracle acting on the initial state $\ket{s}$ which now represented by the red dot dashed line. C) The green line represents the result of the diffusion operator acting on the result state in B, $U_f\ket{s}$ which now represented by the blue dotted line.   }\label{2d0}}
  \end{figure}
 If we define the grover operator $\hat{G}$ as:
 \begin{equation}
@@ -199,7 +203,7 @@ If there exists multiple matches, we can rewrite the input state $\ket{s_t}$ as:
 where $t$ is the number of desired templates, $\ket{w_t}$ refers to all the desired templates and $\ket{s'_t}$ are all the undesired templates. In this case, in the two-dimensional space spanned by $\ket{w_t}$ and $\ket{s'_t}$, state $\ket{s_t}$ is represented by a vector with an angle $\theta_t$ defined as:
 \begin{equation}
 \label{thetat}
-   \theta_t=\arcsin\braket{w_t|s_t}=\arcsin {\sqrt{\frac{t}{N}}}. 
+   \theta_t=\arcsin\braket{w_t}{s_t}=\arcsin {\sqrt{\frac{t}{N}}}. 
 \end{equation}
 Still, in order to maximise the amplitude of the desired templates, we need to apply the Grover's algorithm $k_t$ times that $(2k_t+1)\theta_t=\frac{\pi}{2}$. If the number $t$ of the desired templates are known, it is obvious that
 \begin{equation}
@@ -251,6 +255,7 @@ Comparing Eq.~\ref{QFT} and Eq.~\ref{CG}, we naturally proceed to apply an inver
    \hat{U}^{-1}_{QFT}\sum_{a=0}^{2^N-1}e^{i2\theta_t a}\ket{a}\otimes\ket{s_t}=\frac{1}{2^{N}}\sum_{a=0}^{2^N-1} \sum_{b=0}^{2^N-1} e^{i2\pi a(\frac{\theta_t}{\pi}-\frac{b}{2^N})}\ket{b}\otimes\ket{s_t}.%this part can elaborate in thesis according to steve's 7.38
 \end{equation}
 Within the basis $\{\ket{b}\}$, the state $\ket{b}$ satisfies $\frac{\theta_t}{\pi}-\frac{b}{2^N}=0$ will be the most probable state in the measurement. Even in situations that $\frac{\theta_t}{2^N\pi}$ is not an integer, the system would still peak near the state $b=\frac{\theta_t}{2^N\pi}$ with a probability higher than $40\%$\cite{nielsen2011quantum}, rather significant considering the number of states being $2^N$.
+\jv{Can this be extended to the case where the non-matching templates have a value $\neq0$? That is more like the real GW case}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
