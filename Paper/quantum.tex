@@ -106,6 +106,149 @@ We did a quantum thing
 
 \subsection{Matched-filtering}
 
+Gravitational-wave signal searches require intensive data analysis techniques to detect as they are naturally weak signals and are buried in detector noise.
+One advantage to the search is that the signal from binary sources is very well modeled; a gravitational wave form can be produced from numerical relativity given the binary systems parameters. 
+Therefore the parameter space of interest can be discretized and a list of wave forms can be constructed as candidate signal \textit{templates}.
+This list of wave forms we call the \textit{template bank}.
+The selected points in the parameter space are spaced so that no more than $3\%$ of the maximum signal-to-noise ratio $\rho$ is lost due to the discretization \cite{capano2016implementing}.
+Matched filtering is a signal processing technique used to determine a template that corresponds to the maximum $\rho$ out of the template bank.
+The $\rho$ is calculated by correlating each template with the output from the detector.
+
+\ \\
+=======================================
+\subsection*{Continuous}
+
+For the derivation of a matched filter, consider the detector output to be $x(t)$, defined:
+
+\begin{equation}
+x(t) = s(t) + n(t),
+\end{equation}
+
+where $s$ is the signal combined with some zero-mean noise $n$.
+Now consider a linear filter $q(t)$ that is applied to the data in the form of an inner product to enhance the signal component but reduce the noise.
+Assuming the signal has some finite duration, this can be written in the frequency domain as:
+
+\begin{equation}
+q\cdot x = \int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{x}(f)df = \int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df + \int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{n}(f)df.
+\end{equation}
+
+It is evident that $q$ should be chosen as to maximize the inner product with the signal whilst minimizing the inner product with the noise.
+Now we can define the output $\rho$ from these terms: 
+
+\begin{equation}
+\rho^{2} =  \frac{\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df\right|^{2}}
+{\text{E}\left[\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{n}(f)df\right|^{2}\right]},
+\end{equation}
+
+for the case of zero-mean noise.
+This can be rewritten:
+
+\begin{equation}
+\begin{split}
+\rho^{2} = & \frac{\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df\right|^{2}}
+{\text{E}\left[\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{q}(f')\tilde{n}^{\ast}(f')\tilde{n}(f)dfdf'\right]} \\ 
+= & \frac{\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df\right|^{2}}
+{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \text{E}\left[\tilde{n}^{\ast}(f')\tilde{n}(f)\right]\tilde{q}^{\ast}(f)\tilde{q}(f')dfdf'} \\
+= & \frac{\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df\right|^{2}}
+{\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} S_{n}(f)\delta(f-f')\tilde{q}^{\ast}(f)\tilde{q}(f')dfdf'} \\
+= & \frac{\left|\int_{-\infty}^{\infty} \tilde{q}^{\ast}(f)\tilde{s}(f)df\right|^{2}}
+{\int_{-\infty}^{\infty}S_{n}(f)|\tilde{q}(f)|^{2}df},
+\end{split}
+\end{equation}
+
+where $S_n$ is the noise spectral density.
+%We can use the Cauchy–Schwarz inequality to 
+Expanding this once again:
+
+\begin{equation}
+\rho^{2} = \frac{\left|\int_{-\infty}^{\infty} \left(S_{n}^{1/2}(f)\tilde{q}(f)\right)^{\ast}\left(S_{n}^{-1/2}(f)\tilde{s}(f)\right)df\right|^{2}}
+{\int_{-\infty}^{\infty}S_{n}(f)|\tilde{q}(f)|^{2}df}
+\end{equation}
+
+allows for an upper limit to be placed on $\rho$ using Cauchy-Schwarz inequality:
+
+\begin{equation}
+\left|\int_{-\infty}^{\infty} f^{\ast}(x)g(x)dx\right|^{2} \le \int_{-\infty}^{\infty}\left|f(x)\right|^{2}dx \int_{-\infty}^{\infty}\left|g(x)\right|^{2}dx,
+\end{equation}
+
+giving:
+
+\begin{equation}
+\begin{split}
+\frac{\left|\int_{-\infty}^{\infty} \left(S_{n}^{1/2}(f)\tilde{q}(f)\right)^{\ast}\left(S_{n}^{-1/2}(f)\tilde{s}(f)\right)df\right|^{2}}
+{\int_{-\infty}^{\infty}S_{n}(f)|\tilde{q}(f)|^{2}df} 
+\\
+\le
+\frac{\int_{-\infty}^{\infty}S_{n}(f)|\tilde{q}(f)|^{2}df \int_{-\infty}^{\infty}S_{n}^{-1}(f)|\tilde{s}(f)|^{2}df}
+{\int_{-\infty}^{\infty}S_{n}(f)|\tilde{q}(f)|^{2}df},
+\end{split}
+\end{equation}
+
+constraining $\rho$ to:
+
+\begin{equation}
+\rho^{2} \le \int_{-\infty}^{\infty}S_{n}^{-1}(f)|\tilde{s}(f)|^{2}df.
+\end{equation}
+
+This upper bound is achieved when the template is equal to a noise-weighted copy of the signal:
+
+\begin{equation}\label{equ:optsnr}
+\tilde{q}(f) \propto \alpha\frac{\tilde{s}(f)}{S_n(f)}.
+\end{equation}
+
+In the case of gravitational-wave signal detection, the detector output is in the form of strain data sampled at a rate of 8192\,Hz, where the match filter of length $M$ is applied to the data via a convolution to give an estimate of the signal-to-noise ratio at a given data point $x[k]$:
+
+\begin{equation}
+\rho_i[k] = \sum_{i}^{M-1}h[i-k]x[k],
+\end{equation}
+
+where $h$ is the noise-weighted, time-reversed complex conjugate of a candidate signal as shown in Equation~\ref{equ:optsnr}.
+
+\ \\
+=======================================
+\subsection*{Discrete}
+
+In the case of gravitational-wave signal detection, the detector output is in the form of strain data sampled at a rate of 8192\,Hz.
+For the derivation of a matched filter, consider the detector output to be a vector of length $M$ denoted $\vec{x}$, defined:
+
+\begin{equation}
+\vec{x} = \vec{s} + \vec{n},
+\end{equation}
+
+where $\vec{s}$ is the signal combined with some noise vector $\vec{n}$ with a mean of zero so that it has a covariance matrix $\vec{S}=\text{E}\left[\vec{n}\vec{n}^{\text{H}}\right]$.
+Now consider a linear filter $\vec{q}$ that is applied to the data in the form of an inner product to enhance the signal component but reduce the noise.
+Due to the filter's linearity, it can be written:
+
+\begin{equation}
+\vec{q}^{\text{H}}\vec{x} = \sum_{i=0}^{M-1} q^{\ast}[i]x[i] = \vec{q}^{\text{H}}\vec{s} + \vec{q}^{\text{H}}\vec{n}.
+\end{equation}
+
+It is evident that $\vec{q}$ should be chosen as to maximize the inner product with the signal whilst minimizing the inner product with the noise.
+Now we can define the output SNR from these terms: 
+
+\begin{equation}
+\text{SNR}^{2} = \frac{|\vec{q}^{\text{H}}\vec{s}|^{2}}{\text{Var}\left[\sqrt{|\vec{q}^{\text{H}}\vec{n}|^{2}}\right]} = \frac{|\vec{q}^{\text{H}}\vec{s}|^{2}}{\text{E}\left[|\vec{q}^{\text{H}}\vec{n}|^{2}\right]},
+\end{equation}
+
+for the case of zero-mean noise.
+This can be rewritten:
+
+\begin{equation}
+\begin{split}
+\text{SNR}^{2} = & \frac{|\vec{q}^{\text{H}}\vec{s}|^{2}}{\text{E}\left[(\vec{q}^{\text{H}}\vec{n})(\vec{q}^{\text{H}}\vec{n})^{\text{H}}\right]} \\ 
+= & \frac{|\vec{q}^{\text{H}}\vec{s}|^{2}}{\vec{q}^{\text{H}}\text{E}\left[\vec{n}\vec{n}^{\text{H}}\right]\vec{q}} = \frac{|\vec{q}^{\text{H}}\vec{s}|^{2}}{\vec{q}^{\text{H}}\vec{S}\vec{q}}.
+\end{split}
+\end{equation}
+
+
+
+\begin{equation}
+\text{SNR}^{2} = \frac{|(\vec{S}^{1/2}\vec{q})^{\text{H}}(\vec{S}^{-1/2}\vec{s})|^{2}}{(\vec{S}^{1/2}\vec{q})^{\text{H}}(\vec{S}^{1/2}\vec{q})}
+\end{equation}
+
+\ \\
+=======================================
+
 \begin{itemize}
 \item derive matched-filtering as a semi-optimal statistic
 \item What problem it solves
@@ -444,7 +587,7 @@ According to the discussion in Section.~\ref{quantc}, the complexity of l is $O(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Practical considerations}\label{sec:intro}
+\section{Practical considerations}\label{sec:praccon}
 
 Discuss things about practicalities for the future. How many qubits are needed
 etc.. 
