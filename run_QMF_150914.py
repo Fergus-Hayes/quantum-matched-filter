@@ -33,9 +33,10 @@ plt.plot(np.arange(len(Data_t))/2048., Data_t/1.e-25, lw=.2, color='black')
 plt.xlabel(r'$t$ (s)')
 plt.ylabel(r'$x(t)$ ($10^{-25}$)')
 plt.savefig('plots/strain.png')
+plt.close()
 
 # Qubits for templates
-Mqubits = 9
+Mqubits = 18
 # Qubits for Grover's
 Pqubits = 7
 
@@ -46,33 +47,38 @@ M = int(2**(Mqubits))
 # Number of states in ancillary register
 P = int(2**(Pqubits))
 
+# Generate indicies over time
+n_inds = np.arange(N)
+# Generate indicies over templates
+m_inds = np.arange(M)
+# Create indicies for each Grover's iteration
+p_inds = np.arange(P)
+
 def get_paras(M):
     '''
     Get mass/spins given index
     ''' 
     
-    bank_file = 'H1L1-BANK2HDF_SPLITBANK_BANK0_INJECTIONS-1134450017-1202400.hdf'
+    bank_file = 'H1L1-BANK2HDF-1134450017-1202400.hdf'#'H1L1-BANK2HDF_SPLITBANK_BANK0_INJECTIONS-1134450017-1202400.hdf'
     full_bank = h5py.File(bank_file,'r')
 
     bank_size = full_bank['mass1'].size
-    
+
     if bank_size>M:
         indexes = np.arange(bank_size)[::int(bank_size//M)][:M]
     else:
         indexes = np.arange(bank_size)
     
     bank = {}
-    bank['mass1'] = np.array(full_bank['mass1'][indexes])    
-    bank['mass2'] = np.array(full_bank['mass2'][indexes]) 
-    bank['spin1z'] = np.array(full_bank['spin1z'][indexes]) 
-    bank['spin2z'] = np.array(full_bank['spin2z'][indexes])   
+    bank['mass1'] = np.array(full_bank['mass1'])[indexes]   
+    bank['mass2'] = np.array(full_bank['mass2'])[indexes]
+    bank['spin1z'] = np.array(full_bank['spin1z'])[indexes]
+    bank['spin2z'] = np.array(full_bank['spin2z'])[indexes]  
+    #bank['f_lower'] = np.array(full_bank['f_lower'])[indexes]
 
     return bank
 
 paras = get_paras(M)
-
-# Initiating the index states
-index_states = np.ones((M))/np.sqrt(M)
 
 def SNR_given_index(data, psd, dt, df, paras):
     '''
@@ -82,12 +88,12 @@ def SNR_given_index(data, psd, dt, df, paras):
     (mass1, mass2, spin1z, spin2z, f low).
     '''
 
-    m1,m2,s1,s2,fl = paras
+    m1,m2,s1,s2 = paras
     N = len(data)
     waveform_ = get_td_waveform(approximant="IMRPhenomPv3",
                                 mass1=m1, mass2=m2,
                                 spin1z=s1, spin2z=s2,
-                                delta_t=dt, f_lower=fl)
+                                delta_t=dt, f_lower=20.)
     waveform_[0].resize(int(2*(N - 1)))
     template_ = waveform_[0].cyclic_time_shift(waveform_[0].start_time)
     template = np.array(make_frequency_series(TimeSeries(template_,delta_t=dt)))
@@ -97,34 +103,26 @@ def SNR_given_index(data, psd, dt, df, paras):
     SNR = np.array(SNR.crop(8, 4))
     return np.max(np.abs(SNR))
 
-def k_12(index_states, Templates, Data, ini_w, dt=1./2048, f_low=20., threshold=12):
+def k_12(M, Data, dt=1./2048, f_low=20., threshold=12):
     '''
     Make wavforms from index
     '''
 
-    M = index_states.shape[0]
     N = len(Data)
-    bank_file = 'H1L1-BANK2HDF_SPLITBANK_BANK0_INJECTIONS-1134450017-1202400.hdf'
-    full_bank = h5py.File(bank_file,'r')
-
-    bank_size = full_bank['mass1'].size
+    bank = get_paras(M)
 
     psd = np.load('psd.npy')
     freqs = np.fft.fftfreq(2*(N-1))*1./dt
     df = np.abs(freqs[1]-freqs[0])
 
-    if bank_size>M:
-        indexes = np.arange(bank_size)[::int(bank_size//M)][:M]
-    else:
-        indexes = np.arange(bank_size)
+    m1s = bank['mass1']
+    m2s = bank['mass2']
+    s1s = bank['spin1z']
+    s2s = bank['spin2z']
+    #fls = bank['f_lower']
 
-    m1s = full_bank['mass1'][indexes]
-    m2s = full_bank['mass2'][indexes]
-    s1s = full_bank['spin1z'][indexes]
-    s2s = full_bank['spin2z'][indexes]
-    fls = full_bank['f_lower'][indexes]
-
-    paras = iter(np.array([m1s,m2s,s1s,s2s,fls]).T)
+    #paras = iter(np.array([m1s,m2s,s1s,s2s,fls]).T)
+    paras = iter(np.array([m1s,m2s,s1s,s2s]).T)
 
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     func = partial(SNR_given_index, Data, psd, dt, df)
@@ -135,12 +133,12 @@ def k_12(index_states, Templates, Data, ini_w, dt=1./2048, f_low=20., threshold=
     if len(w)<M:
         w = np.pad(w,(0,M-len(w)),constant_values=1.).astype(float)
     w*=1./np.sqrt(M)
-    return index_states, Templates, Data, w
+    return w
 
 # Define the psi ini state (currently not used)
 psi_ini = None # Just used as a placeholder
 # Apply k12 to the states
-index_states, Templates, Data, w = k_12(index_states, psi_ini, Data, np.identity(M)[0], threshold=SNR)
+w = k_12(M, Data, threshold=SNR)
 
 # Initialising joint state psi_0 which we apply Grover's algorithm over given w
 psi_0 = np.ones((M,P))/np.sqrt(M*P)
@@ -195,6 +193,7 @@ ax.set_zlabel(r'$|\psi_{1}\rangle$')
 
 plt.tight_layout()
 plt.savefig('plots/amplitudes.png')
+plt.close()
 
 def IQFT(P):
     '''
@@ -233,6 +232,7 @@ ax.set_ylabel(r'$M$')
 ax.set_zlabel(r'$|\langle\psi_{2}\rangle|^{2}$')
 plt.tight_layout()
 plt.savefig('plots/IQFT.png')
+plt.close()
 
 # Measure each of the qubits corresponding to template states M and period states P
 measurement = np.unravel_index(np.argmax(np.absolute(psi_2)**2), psi_2.shape)
@@ -270,6 +270,7 @@ plt.axvline(opt_p, ls=':', color='black', label=r'$k_{\mathrm{t}}$')
 #plt.axvline(opt_p, ls=':', color='black', label=r'$p_{opt}$')
 plt.legend(fontsize=15)
 plt.savefig('plots/popt.png')
+plt.close()
 
 fig = plt.figure(figsize=(10,7))
 ax = plt.subplot(111)
@@ -279,6 +280,7 @@ cb = plt.colorbar(sc, ax=[ax], label=r'$|\langle\psi_{2}\rangle|^{2}$')
 plt.xlabel(r'$m_{1}$')
 plt.ylabel(r'$m_{2}$')
 plt.savefig('plots/mass_dists.png')
+plt.close()
 
 fig = plt.figure(figsize=(10,7))
 ax = plt.subplot(111)
@@ -288,15 +290,13 @@ cb = plt.colorbar(sc, ax=[ax], label=r'$|\langle\psi_{2}\rangle|^{2}$')
 plt.xlabel(r'$s_{1}$')
 plt.ylabel(r'$s_{2}$')
 plt.savefig('plots/spin_dists.png')
+plt.close()
 
 Data = np.load('noise.npy')
 # N is the number of data points
 N = len(Data)
 
-# Initiating the joint states across float, time and template qubits
-index_states = np.ones((M))/np.sqrt(M)
-
-index_states, psi_ini, Data, w = k_12(index_states, psi_ini, Data, np.identity(M)[0], threshold=SNR)
+w = k_12(M, Data, threshold=SNR)
 
 # Initialising joint state psi_0 which we apply Grover's algorithm over given w
 psi_0_n = np.ones((M,P))/np.sqrt(M*P)
