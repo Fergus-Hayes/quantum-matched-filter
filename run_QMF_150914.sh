@@ -27,5 +27,5 @@ echo "request_cpus = 3">>"${LOC}/${RUN}/sample.sub"
 echo "request_memory = 2GB">>"${LOC}/${RUN}/sample.sub"
 echo "request_disk = 2GB">>"${LOC}/${RUN}/sample.sub"
 echo "queue 1">>"${LOC}/${RUN}/sample.sub"
-#condor_submit "${LOC}/${RUN}/sample.sub"
+condor_submit "${LOC}/${RUN}/sample.sub"
 
