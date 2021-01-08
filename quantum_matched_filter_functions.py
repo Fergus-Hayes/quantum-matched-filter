@@ -42,6 +42,7 @@ def get_mass_grid(M, mmin=4., mmax=90., temp_file=None):
     bank = {}
     bank['mass1'] = m1s[:M]
     bank['mass2'] = m2s[:M]
+    bank['f_lower'] = np.ones(M)*20.
     
     return bank, M1s[:M,:M], M2s[:M,:M]
 
@@ -77,7 +78,7 @@ def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=Tru
     freqs = np.fft.fftfreq(2*(N-1))*1./dt
     df = np.abs(freqs[1]-freqs[0])
 
-    bank, _, _ = get_paras(M, temp_file=temp_file)
+    bank, _, _ = bankfunc(M, temp_file=temp_file)
     m1s = bank['mass1']
     m2s = bank['mass2']
     s1s = np.zeros(len(m1s))
