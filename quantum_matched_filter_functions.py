@@ -40,10 +40,10 @@ def get_mass_grid(M, mmin=4., mmax=90., temp_file=None):
     m1s = M1s[M1s>=M2s]
     m2s = M2s[M1s>=M2s]
     bank = {}
-    bank['mass1'] = m1s
-    bank['mass2'] = m2s
+    bank['mass1'] = m1s[:M]
+    bank['mass2'] = m2s[:M]
     
-    return bank, M1s, M2s
+    return bank, M1s[:M,:M], M2s[:M,:M]
 
 def snr_given_index(data, psd, dt, df, paras):
     '''
@@ -66,7 +66,7 @@ def snr_given_index(data, psd, dt, df, paras):
     else:
         return 0
 
-def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=False, bankfunc=get_paras, temp_file=None):
+def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=True, bankfunc=get_paras, temp_file=None, cores=1):
     '''
     Make wavforms from index
     '''
@@ -89,14 +89,10 @@ def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=Fal
 
     paras = iter(np.array([m1s,m2s,s1s,s2s,flows]).T)
 
-    #SNRs = []
-    #for para in paras:
-    #    print(para)
-    #    SNRs.append(snr_given_index(Data, psd, dt, df, para))
-    #    print(SNRs[-1])
-    #SNRs = np.array(SNRs)
+    if cores == None:
+        cores = multiprocessing.cpu_count()
 
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    pool = multiprocessing.Pool(cores)
     func = partial(snr_given_index, Data, psd, dt, df)
     SNRs = np.array(pool.map(func, paras))
     pool.close()
@@ -166,7 +162,7 @@ def quantum_counting2(psi_1):
     M, P = psi_1.shape[0], psi_1.shape[1]
     return np.dot(IQFT(P),psi_1.T)
 
-def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_paras, table=False, save_states=False, dtype='float64', temp_file='data/template_bank.hdf'):
+def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_paras, table=False, save_states=False, dtype='float64', temp_file='data/template_bank.hdf', spins=True, cores=1):
     '''
     Runs the full algorithm given the input data, number of template qubits M,
     number of precision qubits P, output path and threshold SNR (default 12).
@@ -179,7 +175,7 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     index_states = np.ones(M).astype(dtype)/np.sqrt(M)
     
     # Apply k1 and k2 to get w states
-    w, _ = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file)
+    w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
     M = len(w)
 
     # Apply the first step to quantum counting
@@ -190,6 +186,7 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     
     # Save states
     if save_states:
+        np.save(path+'/snrs_'+tag,snrs)
         np.save(path+'/psi1_in_'+tag,psi_)
         np.save(path+'/psi2_in_'+tag,psi)
 
