@@ -37,6 +37,37 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(14,11)
 
     temp_bank, M1, M2 = bankfunc(M, temp_file=tempfile)
 
+    if True:
+        fig2, axs2 = plt.subplots(2,1, figsize=figsize)
+        axs2[0].set_xlabel(r'$m_{1}$', fontsize=fontsize)
+        axs2[0].set_ylabel(r'$m_{2}$', fontsize=fontsize)
+
+        axs2[0].tick_params(axis='both', labelsize=ticksize)
+        axs2[1].tick_params(axis='both', labelsize=ticksize)
+
+        axs2[1].plot(psi_1[match_ind], color='black', lw=2, label=label_match)
+        axs2[1].plot(psi_1[nmatch_ind], ls='--', color='black', lw=2, label=label_nmatch)
+        axs2[1].set_xlabel(r'$i$', fontsize=fontsize)
+        axs2[1].set_ylabel(r'Probability amplitude', fontsize=fontsize)
+
+        fig2.tight_layout()
+       
+        opt = np.argmax(psi_match)
+
+        sc2 = axs2[0].scatter(temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,opt], marker='.', lw=3*(np.abs(psi_1[:,opt])**2)/np.max(np.abs(psi_1)**2), alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(opt), cmap=matplotlib.cm.twilight_shifted)
+        psi_minmax = np.sort([psi_match[opt],psi_nmatch[opt]])
+        axs2[1].vlines(opt,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black')
+
+        leg2 = axs2[1].legend(loc='lower left', fontsize=fontsize)
+        leg2.get_frame().set_linewidth(0.0)
+        cblabel='Probability amplitude'
+        cb2 = plt.colorbar(sc2, ax=[axs2])#[axs[0]])
+        cb2.set_label(label=cblabel, fontsize=fontsize)
+        cb2.ax.tick_params(labelsize=ticksize)
+        fig2.savefig(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass_ani_still.png')
+
+    exit()
+
     fig, axs = plt.subplots(2,1, figsize=figsize)
 
     axs[0].set_xlabel(r'$m_{1}$', fontsize=fontsize)
@@ -51,17 +82,20 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(14,11)
     axs[1].set_xlabel(r'$i$', fontsize=fontsize)
     axs[1].set_ylabel(r'Probability amplitude', fontsize=fontsize)
 
-    plt.tight_layout()
+    fig.tight_layout()
 
     ims = []
     for p in np.arange(psi_1.shape[1]):
         sc = axs[0].scatter(temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', lw=3*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2), alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
-        ims.append((sc,axs[1].vlines(p,ymin=np.min(psi_1),ymax=np.max(psi_1), color='black'),))
+        psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
+        ims.append((sc,axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black'),))
 
+    leg = axs[1].legend(loc='lower left', fontsize=fontsize)
+    leg.get_frame().set_linewidth(0.0)
     cblabel='Probability amplitude'
-    cb = plt.colorbar(sc, label=cblabel, ax=[axs])#[axs[0]])
-    #cb.ax.tick_params(labelsize=ticksize) 
-    #cb.ax.get_yticklabels(fontsize=fontsize)
+    cb = plt.colorbar(sc, ax=[axs])#[axs[0]])
+    cb.set_label(label=cblabel, fontsize=fontsize)
+    cb.ax.tick_params(labelsize=ticksize)
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=5, metadata=dict(artist='Me'), bitrate=1800)
     im_ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=3000, blit=True)

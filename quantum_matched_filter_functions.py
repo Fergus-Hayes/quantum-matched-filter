@@ -29,7 +29,7 @@ def get_paras(M, temp_file='data/template_bank.hdf'):
 
     return bank, None, None
 
-def get_mass_grid(M, mmin=4., mmax=90., temp_file=None):
+def get_mass_grid(M, mmin=4., mmax=200., temp_file=None):
     '''
     Get mass/spins given index
     ''' 
