@@ -24,7 +24,7 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(15,10)
 
     M = psi_2.shape[0]
 
-    temp_bank, M1, M2 = bankfunc(M,tempfile)
+    temp_bank, M1, M2 = bankfunc(M,temp_file=tempfile)
 
     fig = plt.figure(figsize=figsize)
     ax = Axes3D(fig)
@@ -38,7 +38,7 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(15,10)
     ax.set_ylabel(r'$m_{1}$', fontsize=fontsize)
     ax.set_zlabel(r'$m_{2}$', fontsize=fontsize)
     ax.tick_params(axis='both', labelsize=ticksize)
-    fig.savefig(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass.png')
+    fig.savefig(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_eff_mass.png')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage='', description="Perform one QMF on GW150914 given a template bank")

@@ -7,7 +7,7 @@ import scipy.stats as ss
 
 np.random.seed(int(time.time()))
 
-def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(10,8), tempfile=None):
+def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(18,11), tempfile=None):
 
     if bank=='bank':
         bankfunc = qmffn.get_paras
@@ -37,8 +37,8 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(10,8)
     fig = plt.figure(figsize=figsize)
     ax = fig.gca()
 
-    ax.set_xlabel(r'$m_{1}$', fontsize=fontsize)
-    ax.set_ylabel(r'$m_{2}$', fontsize=fontsize)
+    ax.set_xlabel(r'$m_{1}$ $(M_{\odot})$', fontsize=fontsize)
+    ax.set_ylabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize)
     ax.tick_params(axis='both', labelsize=ticksize)
 
     if True:
@@ -64,9 +64,8 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(10,8)
     alpha = 1
     lw = 1
     marker = 'o'
-    colour = iter(cmap(np.linspace(0.,1.,psi_opts.shape[0])[::-1]))
+    colour = iter(cmap(np.linspace(0.,1.,psi_opts.shape[0]+1)[::-1]))
     ims = []
-
     for i in np.arange(psi_opts.shape[0])[::-1]:
         col = next(colour)
         sc = ax.scatter(200, 4, color=col, lw=lw*10, marker=marker, label=r'$\rho_{\mathregular{th}}=$'+str(int(SNRs[i])), alpha=alpha)
@@ -76,14 +75,14 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(10,8)
         for i in np.arange(count+1):
             probs = np.abs(psi_opts[i])**2
             colours = np.where(probs>np.mean(probs),i,colours)
-        sc = ax.scatter(temp_bank['mass1'], temp_bank['mass2'], c=colours, lw=lw, marker=marker, cmap=cmap, vmin=0, vmax=psi_opts.shape[0]-1, alpha=alpha)
+        sc = ax.scatter(temp_bank['mass1'], temp_bank['mass2'], c=colours, lw=lw, marker=marker, cmap=cmap, vmin=-1, vmax=psi_opts.shape[0]-1, alpha=alpha)
         ims.append((sc,))
         ims.append((sc,))
 
     leg = fig.legend(loc='upper left', bbox_to_anchor=(0.15, 0.85), fontsize=fontsize)
     leg.get_frame().set_linewidth(0.0)
 
-    fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_thrs.png')
+    fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_thrs.png',bbox_inches='tight')
 
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=2, metadata=dict(artist='Me'), bitrate=1800)
