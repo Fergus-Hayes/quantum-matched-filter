@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 np.random.seed(int(time.time()))
 
-def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(15,11), tempfile=None):
+def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(20,25), tempfile=None):
 
     if bank=='bank':
         bankfunc = qmffn.get_paras
@@ -41,23 +41,22 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(15,11)
     effspin = (temp_bank['mass1']*temp_bank['spin1z'] + temp_bank['mass2']*temp_bank['spin2z'])/(temp_bank['mass1']+temp_bank['mass2'])
 
     if True:
-        figsize = (20,27)
-        fig = plt.figure(figsize=figsize)
-        gs = matplotlib.gridspec.GridSpec(3, 2, figure=fig) 
+        fig2 = plt.figure(figsize=figsize)
+        gs = matplotlib.gridspec.GridSpec(3, 2, figure=fig2) 
         axs=[]
-        axs.append(fig.add_subplot(gs[:2,:], projection='3d'))
-        axs.append(fig.add_subplot(gs[2,:]))
-        axs[0].set_ylabel(r'$m_{1}$ $(M_{\odot})$', fontsize=fontsize)
-        axs[0].set_xlabel(r'$\chi$', fontsize=fontsize)
-        axs[0].set_zlabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize)
+        axs.append(fig2.add_subplot(gs[:2,:], projection='3d'))
+        axs.append(fig2.add_subplot(gs[2,:]))
+        axs[0].set_ylabel(r'$m_{1}$ $(M_{\odot})$', fontsize=fontsize, labelpad=10)
+        axs[0].set_xlabel(r'$\chi_{\regular{eff}}$', fontsize=fontsize, labelpad=10)
+        axs[0].set_zlabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize, labelpad=10)
 
         axs[0].view_init(30, 45)
         axs[0].invert_xaxis()
         axs[0].tick_params(axis='both', labelsize=ticksize)
         
         opt = np.argmax(psi_match)
-        lws = 3#3*(np.abs(psi_1[:,opt])**2)/np.max(np.abs(psi_1)**2)
-        sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,opt], marker='.', lw=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(opt), cmap=matplotlib.cm.twilight_shifted)
+        lws = 3.+10.*(np.abs(psi_1[:,opt])**2)/np.max(np.abs(psi_1)**2)
+        sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,opt], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(opt), cmap=matplotlib.cm.twilight_shifted)
         psi_minmax = np.sort([psi_match[opt],psi_nmatch[opt]])
         cblabel='Probability amplitude'
         cb = plt.colorbar(sc, ax=[axs])#[axs[0]])
@@ -69,49 +68,75 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(15,11)
         axs[1].plot(psi_1[nmatch_ind], ls='--', color='black', lw=2, label=label_nmatch)
         axs[1].set_xlabel(r'Grover iterations', fontsize=fontsize)
         axs[1].set_ylabel(r'Probability amplitude', fontsize=fontsize)
-
-        #fig2.tight_layout()
        
         axs[1].vlines(opt,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black')
 
         leg = axs[1].legend(loc='lower left', fontsize=fontsize)
         leg.get_frame().set_linewidth(0.0)
-        
-        fig.savefig(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass_effspin_ani_still.png')#,bbox_inches='tight')
+         
+        fig2.savefig(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass_effspin_ani_still.png',bbox_inches='tight')
+        plt.close()
 
-    exit()
-    
-    fig, axs = plt.subplots(2,1, figsize=figsize)
+    fig = plt.figure(figsize=figsize)
+    gs = matplotlib.gridspec.GridSpec(3, 2, figure=fig)
+    axs=[]
+    axs.append(fig.add_subplot(gs[:2,:], projection='3d'))
+    axs.append(fig.add_subplot(gs[2,:]))
+    axs[0].set_ylabel(r'$m_{1}$ $(M_{\odot})$', fontsize=fontsize, labelpad=10)
+    axs[0].set_xlabel(r'$\chi_{\regular{eff}}$', fontsize=fontsize, labelpad=10)
+    axs[0].set_zlabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize, labelpad=10)
 
-    axs[0].set_xlabel(r'$m_{1}$ $(M_{\odot})$', fontsize=fontsize)
-    axs[0].set_ylabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize)
-    #axs[0].set_xlim(0.,150)
-
+    #axs[0].view_init(30, 45)
+    axs[0].invert_xaxis()
     axs[0].tick_params(axis='both', labelsize=ticksize)
-    axs[1].tick_params(axis='both', labelsize=ticksize)
 
+    axs[1].tick_params(axis='both', labelsize=ticksize)
     axs[1].plot(psi_1[match_ind], color='black', lw=2, label=label_match)
     axs[1].plot(psi_1[nmatch_ind], ls='--', color='black', lw=2, label=label_nmatch)
     axs[1].set_xlabel(r'Grover iterations', fontsize=fontsize)
     axs[1].set_ylabel(r'Probability amplitude', fontsize=fontsize)
 
-    fig.tight_layout()
-
-    ims = []
-    for p in np.arange(psi_1.shape[1]):
-        sc = axs[0].scatter(temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', lw=3*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2), alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
-        psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
-        ims.append((sc,axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black'),))
-
     leg = axs[1].legend(loc='lower left', fontsize=fontsize)
     leg.get_frame().set_linewidth(0.0)
+
+    #ims = []
+    #for p in np.arange(psi_1.shape[1])[:3]:
+    #    lws = 3#.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2)
+    #    rot = axs[0].view_init(30, p*(360)/psi_1.shape[1])
+    #    sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
+    #    psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
+    #    ims.append((sc,rot,axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black'),))
+
+    p=0
+    axs[0].view_init(30, p*(360)/psi_1.shape[1])
+    sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
     cblabel='Probability amplitude'
     cb = plt.colorbar(sc, ax=[axs])#[axs[0]])
     cb.set_label(label=cblabel, fontsize=fontsize)
     cb.ax.tick_params(labelsize=ticksize)
+
+    def init():
+        p=0
+        lws = 2+(8.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2))
+        psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
+        axs[0].view_init(30, 45+p*(360)/psi_1.shape[1])
+        axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
+        return fig,
+
+    def animate(p):
+
+        lws = (2+(4.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2)))**2
+        psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
+        axs[0].view_init(30, 45+p*(360)/psi_1.shape[1])
+        axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black')
+        axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
+        return fig,
+
+    im_ani = matplotlib.animation.FuncAnimation(fig, animate, init_func=init, frames=psi_1.shape[1], interval=100, blit=True) 
+
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=5, metadata=dict(artist='Me'), bitrate=1800)
-    im_ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=3000, blit=True)
+    #im_ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=3000, blit=True)
     im_ani.save(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass_ani.mp4', writer=writer)
 
 
