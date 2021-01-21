@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, time, matplotlib
+import argparse, time, matplotlib, weakref
 import quantum_matched_filter_functions as qmffn
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
@@ -99,14 +99,6 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(20,25)
     leg = axs[1].legend(loc='lower left', fontsize=fontsize)
     leg.get_frame().set_linewidth(0.0)
 
-    #ims = []
-    #for p in np.arange(psi_1.shape[1])[:3]:
-    #    lws = 3#.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2)
-    #    rot = axs[0].view_init(30, p*(360)/psi_1.shape[1])
-    #    sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
-    #    psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
-    #    ims.append((sc,rot,axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black'),))
-
     p=0
     axs[0].view_init(30, p*(360)/psi_1.shape[1])
     sc = axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
@@ -115,28 +107,34 @@ def main(infile, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(20,25)
     cb.set_label(label=cblabel, fontsize=fontsize)
     cb.ax.tick_params(labelsize=ticksize)
 
+    line1, line2 = [], []
+
     def init():
         p=0
         lws = 2+(8.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2))
         psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
         axs[0].view_init(30, 45+p*(360)/psi_1.shape[1])
+        line1.append(axs[1].scatter(p, psi_match[p], c=psi_match[p], vmin=np.min(psi_1), vmax=np.max(psi_1), cmap=matplotlib.cm.twilight_shifted, lw=5, marker='o'))
+        line2.append(axs[1].scatter(p, psi_nmatch[p], c=psi_nmatch[p], vmin=np.min(psi_1), vmax=np.max(psi_1), cmap=matplotlib.cm.twilight_shifted, lw=5, marker='o'))
         axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
         return fig,
 
     def animate(p):
-
         lws = (2+(4.*(np.abs(psi_1[:,p])**2)/np.max(np.abs(psi_1)**2)))**2
         psi_minmax = np.sort([psi_match[p],psi_nmatch[p]])
         axs[0].view_init(30, 45+p*(360)/psi_1.shape[1])
-        axs[1].vlines(p,ymin=psi_minmax[0],ymax=psi_minmax[1], color='black')
+        line1[-1].remove()
+        line2[-1].remove()
+        line1.append(axs[1].scatter(p, psi_match[p], c=psi_match[p], vmin=np.min(psi_1), vmax=np.max(psi_1), cmap=matplotlib.cm.twilight_shifted, lw=5, marker='o'))
+        line2.append(axs[1].scatter(p, psi_nmatch[p], c=psi_nmatch[p], vmin=np.min(psi_1), vmax=np.max(psi_1), cmap=matplotlib.cm.twilight_shifted, lw=5, marker='o'))
         axs[0].scatter(effspin, temp_bank['mass1'], temp_bank['mass2'], c=psi_1[:,p], marker='.', s=lws, alpha=0.5, vmin=np.min(psi_1), vmax=np.max(psi_1), label=r'$p=$'+str(p), cmap=matplotlib.cm.twilight_shifted)
         return fig,
 
+    frames = psi_1.shape[1]
     im_ani = matplotlib.animation.FuncAnimation(fig, animate, init_func=init, frames=psi_1.shape[1], interval=100, blit=True) 
 
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=5, metadata=dict(artist='Me'), bitrate=1800)
-    #im_ani = animation.ArtistAnimation(fig, ims, interval=50, repeat_delay=3000, blit=True)
     im_ani.save(outpath+'.'.join(infile.split('/')[-1].split('.')[:-1])+'_mass_ani.mp4', writer=writer)
 
 
