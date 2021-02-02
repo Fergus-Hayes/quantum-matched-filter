@@ -1,12 +1,10 @@
 import numpy as np
 import gw_detections_functions as gwfn
 
-from pycbc.waveform import get_td_waveform
-
 import h5py, multiprocessing
 from functools import partial
 
-def get_paras(M, temp_file='data/template_bank.hdf'):
+def get_paras(M, temp_file='data/template_bank.hdf', spins=True):
     '''
     Get mass/spins given index
     ''' 
@@ -23,13 +21,18 @@ def get_paras(M, temp_file='data/template_bank.hdf'):
     bank = {}
     bank['mass1'] = np.array(full_bank['mass1'],dtype=float)[indexes]   
     bank['mass2'] = np.array(full_bank['mass2'],dtype=float)[indexes]
-    bank['spin1z'] = np.array(full_bank['spin1z'],dtype=float)[indexes]
-    bank['spin2z'] = np.array(full_bank['spin2z'],dtype=float)[indexes] 
+    if spins:
+        bank['spin1z'] = np.array(full_bank['spin1z'],dtype=float)[indexes]
+        bank['spin2z'] = np.array(full_bank['spin2z'],dtype=float)[indexes] 
+    else:
+        bank['spin1z'] = np.zeros(M)
+        bank['spin2z'] = np.zeros(M)
+        
     bank['f_lower'] = np.array(full_bank['f_lower'],dtype=float)[indexes]
 
     return bank, None, None
 
-def get_mass_grid(M, mmin=4., mmax=200., temp_file=None):
+def get_mass_grid(M, mmin=4., mmax=200., temp_file=None, spins=False):
     '''
     Get mass/spins given index
     ''' 
@@ -46,7 +49,10 @@ def get_mass_grid(M, mmin=4., mmax=200., temp_file=None):
     
     return bank, M1s[:M,:M], M2s[:M,:M]
 
-def snr_given_index(data, psd, dt, df, paras):
+def cbc_signal(psd, dt, df):
+    return 0
+
+def snr_given_index(data, psd, dt, paras):
     '''
     Perform matched filtering on some data
     given the psd, delta f (df), delta t (dt)
@@ -67,7 +73,7 @@ def snr_given_index(data, psd, dt, df, paras):
     else:
         return 0
 
-def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=True, bankfunc=get_paras, temp_file=None, cores=1):
+def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=True, bankfunc=get_paras, temp_file=None, cores=1, snrfunc=snr_given_index):
     '''
     Make wavforms from index
     '''
@@ -78,23 +84,15 @@ def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=Tru
     freqs = np.fft.fftfreq(2*(N-1))*1./dt
     df = np.abs(freqs[1]-freqs[0])
 
-    bank, _, _ = bankfunc(M, temp_file=temp_file)
-    m1s = bank['mass1']
-    m2s = bank['mass2']
-    s1s = np.zeros(len(m1s))
-    s2s = np.zeros(len(m1s))
-    flows = bank['f_lower']
-    if spins:
-        s1s = bank['spin1z']
-        s2s = bank['spin2z']
-
-    paras = iter(np.array([m1s,m2s,s1s,s2s,flows]).T)
-
+    bank, _, _ = bankfunc(M, temp_file=temp_file, spins=spins)
+    
+    paras = iter(np.array(list(bank.values())).T)
+    
     if cores == None:
         cores = multiprocessing.cpu_count()
 
     pool = multiprocessing.Pool(cores)
-    func = partial(snr_given_index, Data, psd, dt, df)
+    func = partial(snrfunc, Data, psd, dt)
     SNRs = np.array(pool.map(func, paras))
     pool.close()
 
