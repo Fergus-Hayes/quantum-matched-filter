@@ -1,8 +1,6 @@
 import numpy as np
 import gw_detections_functions as gwfn
 
-from pycbc.waveform import get_td_waveform
-
 import h5py, multiprocessing
 from functools import partial
 
