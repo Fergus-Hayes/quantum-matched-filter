@@ -26,12 +26,15 @@ def main(Mqubits, Pqubits, tag='out', path='./output/', SNR_threshold=12., bank=
 
     measurement, psi_opt, Nmatches = qmffn.QMF(Data, psd, M, P, tag=tag, path=path, SNR_threshold=SNR_threshold, bankfunc=bankfunc, table=False, save_states=True, dtype='float64', temp_file=template_file, spins=spins, cores=cores)
 
-    print(measurement)
+    print('b:',measurement)
     N_templates = int(np.round(M*np.sin(measurement*np.pi/P)**2))
-    opt_p = int(np.round(((np.pi/4)/np.arcsin(np.sqrt(N_templates/M))) - 1./2))
-    print(opt_p)
-    print(N_templates, Nmatches)
-    print(np.sum(np.abs(psi_opt[np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)])**2))
+    if measurement!=0 or measurement!=P-1:
+        opt_p = int(np.round((P/(4*measurement))-0.5))
+    else:
+        opt_p = 1.
+    print('k_opt:',opt_p)
+    print('Estimated matches v true matches:',N_templates, Nmatches)
+    print('Prob of getting correct template:',np.sum(np.abs(psi_opt[np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)])**2))
 
     np.save(path+'psi_opt_'+tag,psi_opt)
 

@@ -45,12 +45,11 @@ def get_mass_grid(M, mmin=4., mmax=200., temp_file=None, spins=False):
     bank = {}
     bank['mass1'] = m1s[:M]
     bank['mass2'] = m2s[:M]
+    bank['spin1z'] = np.zeros(M)
+    bank['spin2z'] = np.zeros(M)
     bank['f_lower'] = np.ones(M)*20.
     
     return bank, M1s[:M,:M], M2s[:M,:M]
-
-def cbc_signal(psd, dt, df):
-    return 0
 
 def snr_given_index(data, psd, dt, paras):
     '''
@@ -201,7 +200,11 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
         return measurement[0], np.ones((M))/np.sqrt(M), np.sum(w<0.)
 
     # The estimated optimal number of Grover's applications can then be determined
-    opt_p = int(np.round(((np.pi/4)/np.arcsin(np.sqrt(N_templates/M))) - 1./2))
+    b = measurement[0]
+    if b!=0 or b!=P-1:
+        opt_p = int(np.round((P/(4*b))-0.5))
+    else:
+        opt_p = 1.
     
     # As we know the correct number of matches, we can calculate the true optimal applications
     opt_t = int(np.round(((np.pi/4)/np.arcsin(np.sqrt(int(np.sum(w<0.))/M))) - 1./2))
@@ -209,10 +212,10 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     # The state of the template states after the optimal applications is then determined
     psi_opt = iquantum_counting0(w, np.ones(M).astype(dtype)/np.sqrt(M), opt_p, dtype)
     
-    # The number of matching template can then be determined
+    # The probability of returning a matching template can then be determined
     p_correct = np.sum(np.array(np.abs(psi_opt)**2)[np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)])
     
     if table:
         print(SNR_threshold, '&', np.log2(P), '&', opt_p, '&', opt_t, '&', N_templates, '&',int(np.sum(w<0.)),'&',2**(np.log2(P)-1)+opt_p,'&',np.round(p_correct,2),r'$\\ \\$')
     
-    return measurement[0], psi_opt, np.sum(w<0.)
+    return b, psi_opt, np.sum(w<0.)
