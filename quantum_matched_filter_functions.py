@@ -179,6 +179,8 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
     M = len(w)
 
+    print(w)
+
     # Apply the first step to quantum counting
     psi_ = quantum_counting1(w,np.ones((M,P)).astype(dtype)/np.sqrt(M*P), dtype=dtype)
     

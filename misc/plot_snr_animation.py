@@ -41,7 +41,7 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(18,11
     ax.set_ylabel(r'$m_{2}$ $(M_{\odot})$', fontsize=fontsize)
     ax.tick_params(axis='both', labelsize=ticksize)
 
-    if True:
+    if False:
         samples = np.load('data/GW150914_posterior_samples.npy')
         m1_ins, m2_ins = samples[0], samples[1] # m1, m2
         x = m1_ins[m1_ins>=m2_ins]
@@ -62,27 +62,34 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(18,11
 
     cmap = plt.cm.OrRd
     alpha = 1
-    lw = 1
+    lw = .5
     marker = 'o'
-    colour = iter(cmap(np.linspace(0.,1.,psi_opts.shape[0]+1)[::-1]))
+    colour = iter(cmap(np.linspace(0.,1.,psi_opts.shape[0]+1)))
+    col = next(colour)
     ims = []
-    for i in np.arange(psi_opts.shape[0])[::-1]:
+    for i in np.arange(psi_opts.shape[0]):
         col = next(colour)
-        sc = ax.scatter(200, 4, color=col, lw=lw*10, marker=marker, label=r'$\rho_{\mathregular{th}}=$'+str(int(SNRs[i])), alpha=alpha)
+        probs = np.abs(psi_opts[i])**2
+        print(probs.shape)
+        matches = probs>np.mean(probs)
+        print(np.sum(matches)/M)
+        sc = ax.scatter(temp_bank['mass1'][matches], temp_bank['mass2'][matches], color=col, lw=lw, marker=marker, label=r'$\rho_{\mathregular{th}}=$'+str(int(SNRs[i])), alpha=alpha)
 
-    for count,psi_opt in enumerate(psi_opts):
-        colours = np.zeros(M)
-        for i in np.arange(count+1):
-            probs = np.abs(psi_opts[i])**2
-            colours = np.where(probs>np.mean(probs),i,colours)
-        sc = ax.scatter(temp_bank['mass1'], temp_bank['mass2'], c=colours, lw=lw, marker=marker, cmap=cmap, vmin=-1, vmax=psi_opts.shape[0]-1, alpha=alpha)
-        ims.append((sc,))
-        ims.append((sc,))
+    #for count,psi_opt in enumerate(psi_opts):
+    #    colours = np.zeros(M)
+    #    for i in np.arange(count+1):
+    #        probs = np.abs(psi_opts[i])**2
+    #        colours = np.where(probs>np.mean(probs),i,colours)
+    #    sc = ax.scatter(temp_bank['mass1'], temp_bank['mass2'], c=colours, lw=lw, marker=marker, cmap=cmap, vmin=-1, vmax=psi_opts.shape[0]-1, alpha=alpha)
+    #    ims.append((sc,))
+    #    ims.append((sc,))
 
     leg = fig.legend(loc='upper left', bbox_to_anchor=(0.15, 0.85), fontsize=fontsize)
     leg.get_frame().set_linewidth(0.0)
 
     fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_thrs.png',bbox_inches='tight')
+
+    exit()
 
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=2, metadata=dict(artist='Me'), bitrate=1800)
