@@ -181,6 +181,19 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
         print('Loading SNR')
         snrs = np.load(path+'/snrs_'+tag+'.npy')
         w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+    elif load_states and os.path.isfile('data/SNRs.npy'):
+        print('Loading SNR (from data)')
+        snrs_ = np.load('data/SNRs.npy')
+        if len(snrs_)>M:
+            snrs = snrs_[::len(snrs_)//M]
+            if len(snrs)>M:
+                snrs = snrs[:M]
+            elif len(snrs)<M:
+                snrs__ = snrs_[1:][::len(snrs)//M][:M-len(snrs)]
+                snrs = np.concatenate((snrs,snrs__))
+        snrs = snrs_
+        w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+
 
     else:
         print('Calculating SNR')
