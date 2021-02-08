@@ -17,6 +17,7 @@ def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=20.):
         indexes = np.arange(bank_size)[::int(bank_size//M)][:M]
     else:
         indexes = np.arange(bank_size)
+        M = bank_size
         
     bank = {}
     bank['mass1'] = np.array(full_bank['mass1'],dtype=float)[indexes]   
