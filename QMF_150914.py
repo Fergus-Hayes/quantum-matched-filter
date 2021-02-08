@@ -34,6 +34,7 @@ def main(Mqubits, Pqubits, tag='out', path='./output/', SNR_threshold=12., bank=
         opt_p = 1.
     print('k_opt:',opt_p)
     print('Estimated matches v true matches:',N_templates, Nmatches)
+    print('Number of amplified templates:',np.sum(np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)))
     print('Prob of getting correct template:',np.sum(np.abs(psi_opt[np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)])**2))
 
     np.save(path+'psi_opt_'+tag,psi_opt)
