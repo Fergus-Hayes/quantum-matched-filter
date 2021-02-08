@@ -1,10 +1,10 @@
 import numpy as np
 import gw_detections_functions as gwfn
 
-import h5py, multiprocessing
+import h5py, multiprocessing, os
 from functools import partial
 
-def get_paras(M, temp_file='data/template_bank.hdf', spins=True):
+def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=20.):
     '''
     Get mass/spins given index
     ''' 
@@ -28,7 +28,12 @@ def get_paras(M, temp_file='data/template_bank.hdf', spins=True):
         bank['spin1z'] = np.zeros(M)
         bank['spin2z'] = np.zeros(M)
         
-    bank['f_lower'] = np.array(full_bank['f_lower'],dtype=float)[indexes]
+    if not flow:
+        bank['f_lower'] = np.array(full_bank['f_lower'],dtype=float)[indexes]
+    else:
+        if not isinstance(flow,float):
+            flow=20.
+        bank['f_lower'] = np.ones(M)*flow
 
     return bank, None, None
 
@@ -160,7 +165,7 @@ def quantum_counting2(psi_1):
     M, P = psi_1.shape[0], psi_1.shape[1]
     return np.dot(IQFT(P),psi_1.T)
 
-def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_paras, table=False, save_states=False, dtype='float64', temp_file='data/template_bank.hdf', spins=True, cores=1):
+def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_paras, table=False, save_states=False, load_states=False, dtype='float64', temp_file='data/template_bank.hdf', spins=True, cores=1):
     '''
     Runs the full algorithm given the input data, number of template qubits M,
     number of precision qubits P, output path and threshold SNR (default 12).
@@ -172,8 +177,16 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     # Create equal superposition across template states
     index_states = np.ones(M).astype(dtype)/np.sqrt(M)
     
-    # Apply k1 and k2 to get w states
-    w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
+    if load_states and os.path.isfile(path+'/snrs_'+tag+'.npy'):
+        print('Loading SNR')
+        snrs = np.load(path+'/snrs_'+tag+'.npy')
+        w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+
+    else:
+        print('Calculating SNR')
+        # Apply k1 and k2 to get w states
+        w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
+    
     M = len(w)
 
     print(w)
@@ -181,7 +194,7 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     # Apply the first step to quantum counting
     psi_ = quantum_counting1(w,np.ones((M,P)).astype(dtype)/np.sqrt(M*P), dtype=dtype)
     
-    # Apply the first step to quantum counting
+    # Apply the second step to quantum counting
     psi = quantum_counting2(psi_)
     
     # Save states

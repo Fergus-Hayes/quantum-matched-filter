@@ -73,7 +73,7 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(18,11
         print(probs.shape)
         matches = probs>np.mean(probs)
         print(np.sum(matches)/M)
-        sc = ax.scatter(temp_bank['mass1'][matches], temp_bank['mass2'][matches], color=col, lw=lw, marker=marker, label=r'$\rho_{\mathregular{th}}=$'+str(int(SNRs[i])), alpha=alpha)
+        sc = ax.scatter(temp_bank['mass1'][matches], temp_bank['mass2'][matches], color=col, lw=(2**i)*lw, marker=marker, label=r'$\rho_{\mathregular{th}}=$'+str(int(SNRs[i])), alpha=alpha)
 
     #for count,psi_opt in enumerate(psi_opts):
     #    colours = np.zeros(M)
@@ -85,7 +85,7 @@ def main(infiles, outpath, bank='bank', fontsize=28, ticksize=22, figsize=(18,11
     #    ims.append((sc,))
 
     leg = fig.legend(loc='upper left', bbox_to_anchor=(0.15, 0.85), fontsize=fontsize)
-    leg.get_frame().set_linewidth(0.0)
+    #leg.get_frame().set_linewidth(0.0)
 
     fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_thrs.png',bbox_inches='tight')
 
