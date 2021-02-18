@@ -4,7 +4,7 @@ import gw_detections_functions as gwfn
 import h5py, multiprocessing, os
 from functools import partial
 
-def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=20.):
+def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=False):
     '''
     Get mass/spins given index
     ''' 
@@ -17,6 +17,7 @@ def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=20.):
         indexes = np.arange(bank_size)[::int(bank_size//M)][:M]
     else:
         indexes = np.arange(bank_size)
+        M = bank_size
         
     bank = {}
     bank['mass1'] = np.array(full_bank['mass1'],dtype=float)[indexes]   
@@ -176,7 +177,9 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
 
     # Create equal superposition across template states
     index_states = np.ones(M).astype(dtype)/np.sqrt(M)
-    
+   
+    print(tag)
+
     if load_states and os.path.isfile(path+'/snrs_'+tag+'.npy'):
         print('Loading SNR')
         snrs = np.load(path+'/snrs_'+tag+'.npy')
