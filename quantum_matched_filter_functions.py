@@ -101,8 +101,8 @@ def k_12(index_states, Data, psd, dt=1./4096, f_low=20., threshold=12, spins=Tru
     pool.close()
 
     w = np.where(SNRs>=threshold, -1., 1.)
-
-    M = len(w)
+    w = np.pad(w,(0,M-len(w)),'constant',constant_values=(0,1))
+    
     w*=1./np.sqrt(M)
     return w, SNRs
 
