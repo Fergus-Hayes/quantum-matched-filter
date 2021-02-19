@@ -42,7 +42,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
         k_bs_ = (P/(4.*bs))-0.5
         k_bs__ = (P/(4.*(P-bs)))-0.5
 
-        k_bs = np.where(k_bs_>0.,np.floor(k_bs_),np.where(k_bs__,np.floor(k_bs__),1.))
+        k_bs = np.where(k_bs_>0.,np.round(k_bs_),np.where(k_bs__,np.round(k_bs__),1.))
         k_probs = np.zeros(len(np.unique(k_bs)))
 
         for j,k_b in enumerate(np.unique(k_bs)):

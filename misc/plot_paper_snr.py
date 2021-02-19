@@ -47,20 +47,28 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
     temp_bank, M1, M2 = bankfunc(M, temp_file=tempfile)
 
     effspin = (temp_bank['mass1']*temp_bank['spin1z'] + temp_bank['mass2']*temp_bank['spin2z'])/(temp_bank['mass1']+temp_bank['mass2'])
+    totalM = temp_bank['mass1']+temp_bank['mass2']
 
     snr_label = r'$\rho_{\regular{th}}$'
     effstr = r'$\chi_{\regular{eff}}$'
+    m1_label = r'$m_{1}$ ($M_{\odot})$'
+    m2_label = r'$m_{2}$ ($M_{\odot})$'
+    Mt_label = r'$M_{\regular{tot}}$ ($M_{\odot})$'
 
     if snr_max:
         snr_dict = {}
-        snr_dict[r'$m_{1}$'] = temp_bank['mass1'][snr_maxind]
-        snr_dict[r'$m_{2}$'] = temp_bank['mass2'][snr_maxind]
+        snr_dict[m1_label] = temp_bank['mass1'][snr_maxind]
+        snr_dict[m2_label] = temp_bank['mass2'][snr_maxind]
         snr_dict[effstr] = effspin[snr_maxind]
+        snr_dict[Mt_label] = totalM[snr_maxind]
+
+        print('Best SNR fit- m1:',snr_dict[m1_label], 'm2:', snr_dict[m2_label], 's1:', temp_bank['spin1z'][snr_maxind], 's2:', temp_bank['spin2z'][snr_maxind])
 
     points = pd.DataFrame()
-    points[r'$m_{1}$']=temp_bank['mass1']
-    points[r'$m_{2}$']=temp_bank['mass2']
+    points[m1_label]=temp_bank['mass1']
+    points[m2_label]=temp_bank['mass2']
     points[effstr]=effspin
+    points[Mt_label]=totalM
 
     cond_str ='> '+str(int(SNRs[0]))
 
@@ -83,20 +91,21 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
 
     points_m = pd.DataFrame()
 
-    points_m[r'$m_{1}$']=points[r'$m_{1}$'][cond]
-    points_m[r'$m_{2}$']=points[r'$m_{2}$'][cond]
+    points_m[m1_label]=points[m1_label][cond]
+    points_m[m2_label]=points[m2_label][cond]
     points_m[effstr]=points[effstr][cond]
     points_m[snr_label]=points[snr_label][cond]
+    points_m[Mt_label]=points[Mt_label][cond]
     points_m['lnp']=points['lnp'][cond]
 
     points_m = points_m.sort_values(snr_label)
 
-    size_max = 200.
-    size_min = 10.
+    size_max = 75.
+    size_min = 5.
 
     size = size_max * ((points_m['lnp'].astype(float) - np.min(points_m['lnp'].astype(float))) / (np.max(points_m['lnp'].astype(float)) - np.min(points_m['lnp'].astype(float)))) + size_min
 
-    para_strs = [r'$m_{1}$',r'$m_{2}$',effstr]
+    para_strs = [m1_label,m2_label,Mt_label,effstr]
 
     ndim=len(para_strs)
 
@@ -118,6 +127,12 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
         count+=1
         scs = []
         plt_labels=[]
+        if snr_max:
+            label=None
+            if count==len(coords):
+                label=r'$\max(\{\rho^{max}_{0},...,\rho^{max}_{N}\})=$'+str(np.round(snr_maxv,2))
+            sc_snr = axes[coord[0],coord[1]].scatter(snr_dict[para_strs[para_inds[1]]], snr_dict[para_strs[para_inds[0]]], color='black', marker='o', lw=8., alpha=0.3, label=label)
+        
         for SNR in SNRs:
             if count==len(coords):
                 plt_labels.append(snr_label+'='+str(int(SNR)))
@@ -139,11 +154,10 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
         else:
             axes[coord[0],coord[1]].set_yticks([])
         if snr_max:
-            label=None
             if count==len(coords):
-                label=r'$\max(\rho)=$'+str(np.round(snr_maxv,2))
+                label=r'$\max(\{\rho^{max}_{0},...,\rho^{max}_{N}\})=$'+str(np.round(snr_maxv,2))
                 plt_labels.append(label)
-            scs.append(axes[coord[0],coord[1]].scatter(snr_dict[para_strs[para_inds[1]]], snr_dict[para_strs[para_inds[0]]], color='black', marker='o', lw=8., alpha=0.3, label=label))
+                scs.append(sc_snr)
 
     for coord in np.array(np.array(np.triu_indices(ndim-1, k=1)).T):
         axes[coord[0],coord[1]].axis('off')

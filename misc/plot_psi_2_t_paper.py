@@ -38,9 +38,9 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
         P,M = np.load(infile).shape
         bs = np.arange(P)
         theta_t = np.where(bs<P/2,bs*np.pi/P,(bs*np.pi/P)+np.pi)
-        matches = np.floor(M*np.sin(theta_t)**2)
+        matches = np.round(M*np.sin(theta_t)**2)
         match_probs = np.zeros(len(np.unique(matches)))
-        
+
         for j,match in enumerate(np.unique(matches)):
             match_probs[j] = np.sum(probs[match==matches])
 
@@ -66,7 +66,6 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
             snrs = np.load('/'.join(infile.split('/')[:-1])+'/'+snr_filename)
             t_t = np.sum(snrs>=SNRs[i])
             ax.axvline(t_t, ymin=0., ymax=1., color=col, ls=':')
-
 
     ax.set_xscale('symlog')
     ax.set_xlim(-0.1)

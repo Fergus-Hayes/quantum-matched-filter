@@ -1,13 +1,11 @@
 #!/bin/bash
 
-M=18
+M=17
 m=$((2**${M}))
 
 declare -a SNRS=("8" "12" "16" "18")
-declare -a PS=("12" "13" "14")
+declare -a PS=("10")
 
-ENVLOC="/home/fergus.hayes/src/conda/anaconda3/bin/activate"
-ENV="QMF"
 CORES=1
 
 #declare -a SNRS=("18")
@@ -21,13 +19,19 @@ for SNR in "${SNRS[@]}" ; do
 TAG="loading_snr"
 RUN="M_${M}_P_${P}_${SNR}_${TAG}_multi"
 
-mkdir -p ${LOC}/${RUN}/
-
 p=$((2**${P}))
 
-cp data/SNRs_signal_spins.npy ${LOC}/${RUN}/snrs_${m}_${p}_${SNR}_0_${TAG}.npy
+if [ ! -d "${LOC}/${RUN}/" ]; then
+mkdir -p ${LOC}/${RUN}/
+#if [ ! -f "${LOC}/${RUN}/snrs_${m}_${p}_${SNR}_0_${TAG}.npy" ]; then
+#cp data/SNRs_signal_spins.npy ${LOC}/${RUN}/snrs_${m}_${p}_${SNR}_0_${TAG}.npy
+#fi
+fi
 
 if [ "$(echo $HOSTNAME)" == 'cl8' ]; then
+
+ENVLOC="/home/fergus.hayes/src/conda/anaconda3/bin/activate"
+ENV="QMF"
 
 echo "P: ${P} SNR: ${SNR}"
 echo "universe = vanilla">"${LOC}/${RUN}/sample.sub"
@@ -45,6 +49,8 @@ echo "queue 1">>"${LOC}/${RUN}/sample.sub"
 condor_submit "${LOC}/${RUN}/sample.sub"
 
 else
+ENVLOC="/home/fergus/src/anaconda3/bin/activate"
+ENV="QMF"
 bash ${PWD}/wrapper.sh ${ENVLOC} ${ENV} ${PWD}/QMF_150914.py --Mq ${M} --Pq ${P} --bank bank --tag ${TAG} --SNR-thr ${SNR} --cores ${CORES} --data-file data/signal.npy --psd-file data/psd.npy --path ${LOC}/${RUN}/
 fi
 

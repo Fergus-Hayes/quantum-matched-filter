@@ -14,8 +14,8 @@ def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=False):
     bank_size = full_bank['mass1'].size
     
     if bank_size>M:
-        indexes = np.arange(bank_size)
-        np.random.shuffle(indexes)
+        indexes = np.arange(bank_size)[::bank_size//M]
+        #np.random.shuffle(indexes)
         indexes = indexes[:M]
     else:
         indexes = np.arange(bank_size)
@@ -180,50 +180,68 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     # Create equal superposition across template states
     index_states = np.ones(M).astype(dtype)/np.sqrt(M)
    
-    print(tag)
+    print(path+'snrs_'+tag+'.npy')
 
-    if load_states and os.path.isfile(path+'/snrs_'+tag+'.npy'):
-        print('Loading SNR')
-        snrs = np.load(path+'/snrs_'+tag+'.npy')
-        w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
-    elif load_states and os.path.isfile('data/SNRs.npy'):
-        print('Loading SNR (from data)')
-        snrs_ = np.load('data/SNRs.npy')
-        if len(snrs_)>M:
-            snrs = snrs_[::len(snrs_)//M]
-            if len(snrs)>M:
-                snrs = snrs[:M]
-            elif len(snrs)<M:
-                snrs__ = snrs_[1:][::len(snrs)//M][:M-len(snrs)]
-                snrs = np.concatenate((snrs,snrs__))
-        snrs = snrs_
-        w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+    if True:
+        if load_states and os.path.isfile(path+'snrs_'+tag+'.npy'):
+            print('Loading SNR')
+            snrs = np.load(path+'/snrs_'+tag+'.npy')
+            w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+        elif load_states and os.path.isfile('data/SNRs_signal_spins.npy'):
+            print('Loading SNR (from data/SNRs_signal_spins.npy)')
+            snrs_ = np.load('data/SNRs_signal_spins.npy')
+            if len(snrs_)>M:
+                snrs = snrs_[::len(snrs_)//M]
+                if len(snrs)>M:
+                    snrs = snrs[:M]
+                elif len(snrs)<M:
+                    snrs__ = snrs_[1:][::len(snrs)//M][:M-len(snrs)]
+                    snrs = np.concatenate((snrs,snrs__))
+            else:
+                snrs = snrs_
+            w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
+
+        else:
+            print('Calculating SNR')
+            # Apply k1 and k2 to get w states
+            w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
+    
+        M = len(w)
+
+        print(w)
+        
+        # Save states
+        if save_states:
+            np.save(path+'/snrs_'+tag,snrs)
 
 
+    if load_states and os.path.isfile(path+'psi1_in_'+tag+'.npy'):
+        print('Loading psi1...')
+        psi_ = np.load(path+'psi1_in_'+tag+'.npy')
+        P,M = psi_.shape
     else:
-        print('Calculating SNR')
-        # Apply k1 and k2 to get w states
-        w, snrs = k_12(index_states, Data, psd, threshold=SNR_threshold, bankfunc=bankfunc, temp_file=temp_file, spins=spins, cores=cores)
-    
-    M = len(w)
+        # Apply the first step to quantum counting
+        psi_ = quantum_counting1(w,np.ones((M,P)).astype(dtype)/np.sqrt(M*P), dtype=dtype)
+        # Save states
+        if save_states:
+            np.save(path+'/psi1_in_'+tag,psi_)
 
-    print(w)
 
-    # Apply the first step to quantum counting
-    psi_ = quantum_counting1(w,np.ones((M,P)).astype(dtype)/np.sqrt(M*P), dtype=dtype)
+    if load_states and os.path.isfile(path+'psi2_in_'+tag+'.npy'):
+        print('Loading psi2...')
+        psi = np.load(path+'psi2_in_'+tag+'.npy')
+        P,M = psi.shape
+    else:
+        # Apply the second step to quantum counting
+        psi = quantum_counting2(psi_)
     
-    # Apply the second step to quantum counting
-    psi = quantum_counting2(psi_)
-    
-    # Save states
-    if save_states:
-        np.save(path+'/snrs_'+tag,snrs)
-        np.save(path+'/psi1_in_'+tag,psi_)
-        np.save(path+'/psi2_in_'+tag,psi)
+        # Save states
+        if save_states:
+            np.save(path+'/psi2_in_'+tag,psi)
 
     # Measure the most probable state
     measurement = np.unravel_index(np.argmax(np.absolute(psi)**2), psi.shape)
-    
+
     # From the measured state, we figure out the number of matches
     N_templates = int(np.round(M*np.sin(measurement[0]*np.pi/P)**2))
     
@@ -239,14 +257,26 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
     
     # As we know the correct number of matches, we can calculate the true optimal applications
     opt_t = int(np.round(((np.pi/4)/np.arcsin(np.sqrt(int(np.sum(w<0.))/M))) - 1./2))
-    
-    # The state of the template states after the optimal applications is then determined
-    psi_opt = iquantum_counting0(w, np.ones(M).astype(dtype)/np.sqrt(M), opt_p, dtype)
-    
+   
+    if load_states and os.path.isfile(path+'psi_opt_'+tag+'.npy'):
+        print('Loading psi opt...')
+        psi_opt = np.load(path+'psi_opt_'+tag+'.npy')
+        M = len(psi_opt)
+    else:
+        # The state of the template states after the optimal applications is then determined
+        psi_opt = iquantum_counting0(w, np.ones(M).astype(dtype)/np.sqrt(M), opt_p, dtype)
+
     # The probability of returning a matching template can then be determined
     p_correct = np.sum(np.array(np.abs(psi_opt)**2)[np.abs(psi_opt)**2>np.mean(np.abs(psi_opt)**2)])
     
     if table:
-        print(SNR_threshold, '&', np.log2(P), '&', opt_p, '&', opt_t, '&', N_templates, '&',int(np.sum(w<0.)),'&',2**(np.log2(P)-1)+opt_p,'&',np.round(p_correct,2),r'$\\ \\$')
-    
+        
+        bs = np.arange(P)
+        theta_t = np.where(bs<P/2,bs*np.pi/P,(bs*np.pi/P)+np.pi)
+        matches = np.round(M*np.sin(theta_t)**2)
+
+        P_t0 = np.sum(np.sum(np.absolute(psi)**2,axis=1)[matches==0])
+
+        print(SNR_threshold, '&', np.log2(P), '&', opt_p, '&', opt_t, '&', N_templates, '&',int(np.sum(w<0.)),'&',int(2**(np.log2(P)-1)+opt_p),'&', np.format_float_scientific(1-P_t0,3), '&', np.format_float_scientific(1-p_correct,3),r' \\')
+
     return b, psi_opt, np.sum(w<0.)
