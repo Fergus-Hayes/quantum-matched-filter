@@ -14,7 +14,9 @@ def get_paras(M, temp_file='data/template_bank.hdf', spins=True, flow=False):
     bank_size = full_bank['mass1'].size
     
     if bank_size>M:
-        indexes = np.arange(bank_size)[::int(bank_size//M)][:M]
+        indexes = np.arange(bank_size)
+        np.random.shuffle(indexes)
+        indexes = indexes[:M]
     else:
         indexes = np.arange(bank_size)
         M = bank_size
