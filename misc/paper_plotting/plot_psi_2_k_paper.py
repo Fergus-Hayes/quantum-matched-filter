@@ -17,7 +17,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     SNRs = np.array(SNRs)[snr_inds]
     infiles = np.array(infiles)[snr_inds]
 
-    ylabel = r'$P(k_{obs}=k$)'
+    ylabel = r'$P(k_{\regular{obs}}=k$)'
     xlabel = r'$k$'
     cmap = plt.cm.jet
     lw=3
@@ -35,25 +35,30 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     for i,infile in enumerate(infiles):
 
         probs = np.sum(np.abs(np.load(infile))**2,axis=1)[1:]
-
         P,M = np.load(infile).shape
-
         bs = np.arange(P)[1:]
-        k_bs_ = (P/(4.*bs))-0.5
-        k_bs__ = (P/(4.*(P-bs)))-0.5
-
-        k_bs = np.where(k_bs_>0.,np.round(k_bs_),np.where(k_bs__,np.round(k_bs__),1.))
+        matches = np.round(M*np.sin(bs*np.pi/P)**2).astype(int)
+        matches = np.where(matches==0,1,matches)
+        #match_probs = np.zeros(len(np.unique(matches)))
+        #probs = np.sum(np.abs(np.load(infile))**2,axis=1)[1:]
+        #P,M = np.load(infile).shape
+        #bs = np.arange(P)[1:]
+        #k_bs_ = (P/(4.*bs))-0.5
+        #k_bs__ = (P/(4.*(P-bs)))-0.5
+        #k_bs = np.where(k_bs_>0.,np.round(k_bs_),np.where(k_bs__,np.round(k_bs__),1.))
+        k_bs = np.round(((np.pi/4.)*np.sqrt(M/matches))-0.5).astype(int)
+        
         k_probs = np.zeros(len(np.unique(k_bs)))
 
         for j,k_b in enumerate(np.unique(k_bs)):
             k_probs[j] = np.sum(probs[k_b==k_bs])
         
         if i==0 and noisefile:
-            label = r'$\rho_{\regular{th}}$=8 without signal'
+            label = r'$\rho_{\regular{thr}}$=8 without signal'
             col = 'black'
             ls = '--'
         else:
-            label=r'$\rho_{\regular{th}}$='+str(int(SNRs[i]))
+            label=r'$\rho_{\regular{thr}}$='+str(int(SNRs[i]))
             col = next(colors)
             ls = '-'
 

@@ -17,7 +17,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     SNRs = np.array(SNRs)[snr_inds]
     infiles = np.array(infiles)[snr_inds]
 
-    ylabel = r'$P(b_{obs}=b)$'
+    ylabel = r'$P(b_{\regular{obs}}=b)$'
     xlabel = r'$b$'
     cmap = plt.cm.jet
     
@@ -36,12 +36,12 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
         P,M = np.load(infile).shape
 
         if i==0 and noisefile:
-            label = r'$\rho_{\regular{th}}$=8 without signal'
+            label = r'$\rho_{\regular{thr}}$=8 without signal'
             col = 'black'
             ls = '--'
 
         else:
-            label=r'$\rho_{\regular{th}}$='+str(int(SNRs[i]))
+            label=r'$\rho_{\regular{thr}}$='+str(int(SNRs[i]))
             col = next(colors)
             ls = '-'
 
@@ -56,8 +56,8 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
             t_t = np.sum(snrs>=SNRs[i])
             theta = np.arcsin(np.sqrt(t_t/M))
             k_t = ((np.pi/(2.*theta))-1.)/2.
-            b_t1 = np.round(P*theta/np.pi)
-            b_t2 = np.round(P*(np.pi-theta)/np.pi)
+            b_t1 = P*theta/np.pi
+            b_t2 = P*(np.pi-theta)/np.pi
             ax.axvline(b_t1, ymin=0., ymax=1., color=col, ls=':')
             ax2.axvline(b_t2, ymin=0., ymax=1., color=col, ls=':')
 
@@ -93,7 +93,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     ax2.tick_params(axis='both', labelsize=ticksize, right=False, labelright=False)
 
     #axes[1].tick_params(axis='both', labelsize=ticksize)
-    leg = fig.legend(fontsize=3*fontsize//4, bbox_to_anchor=[0.6, 0.8])#, loc='upper right')
+    leg = fig.legend(fontsize=2*fontsize//3, bbox_to_anchor=[0.6, 0.8])#, loc='upper right')
     leg.get_frame().set_linewidth(0.0)
     fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_psi2_b_paper.png',bbox_inches='tight')
 

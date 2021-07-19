@@ -48,12 +48,14 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
 
     effspin = (temp_bank['mass1']*temp_bank['spin1z'] + temp_bank['mass2']*temp_bank['spin2z'])/(temp_bank['mass1']+temp_bank['mass2'])
     totalM = temp_bank['mass1']+temp_bank['mass2']
+    chirpM = np.power(temp_bank['mass1']*temp_bank['mass2'],3./5)/np.power(temp_bank['mass1']+temp_bank['mass2'],1./5)
 
     snr_label = r'$\rho_{\regular{th}}$'
     effstr = r'$\chi_{\regular{eff}}$'
     m1_label = r'$m_{1}$ ($M_{\odot})$'
     m2_label = r'$m_{2}$ ($M_{\odot})$'
     Mt_label = r'$M_{\regular{tot}}$ ($M_{\odot})$'
+    Mc_label = r'$\mathcal{M}$ ($M_{\odot})$'
 
     if snr_max:
         snr_dict = {}
@@ -61,6 +63,7 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
         snr_dict[m2_label] = temp_bank['mass2'][snr_maxind]
         snr_dict[effstr] = effspin[snr_maxind]
         snr_dict[Mt_label] = totalM[snr_maxind]
+        snr_dict[Mc_label] = chirpM[snr_maxind]
 
         print('Best SNR fit- m1:',snr_dict[m1_label], 'm2:', snr_dict[m2_label], 's1:', temp_bank['spin1z'][snr_maxind], 's2:', temp_bank['spin2z'][snr_maxind])
 
@@ -69,6 +72,7 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
     points[m2_label]=temp_bank['mass2']
     points[effstr]=effspin
     points[Mt_label]=totalM
+    points[Mc_label]=chirpM
 
     cond_str ='> '+str(int(SNRs[0]))
 
@@ -96,21 +100,25 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
     points_m[effstr]=points[effstr][cond]
     points_m[snr_label]=points[snr_label][cond]
     points_m[Mt_label]=points[Mt_label][cond]
+    points_m[Mc_label]=points[Mc_label][cond]
     points_m['lnp']=points['lnp'][cond]
 
     points_m = points_m.sort_values(snr_label)
 
-    size_max = 75.
-    size_min = 5.
+    size_max = 125.
+    size_min = 15.
 
     size = size_max * ((points_m['lnp'].astype(float) - np.min(points_m['lnp'].astype(float))) / (np.max(points_m['lnp'].astype(float)) - np.min(points_m['lnp'].astype(float)))) + size_min
 
-    para_strs = [m1_label,m2_label,Mt_label,effstr]
+    para_strs = [m1_label, m2_label, effstr]#[Mc_label, Mt_label, effstr]#[m1_label,m2_label,Mt_label,effstr,Mc_label]
 
     ndim=len(para_strs)
 
     fig, axes = plt.subplots(nrows=ndim-1, ncols=ndim-1, figsize=(12,12))
-  
+
+    if ndim==2:
+        axes = np.array([[axes]])
+
     count=0
     coords = np.array(np.array(np.tril_indices(ndim-1)).T)
     paras_inds = np.array(np.array(np.tril_indices(ndim,k=-1)).T)
@@ -118,20 +126,21 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
     ticksize=16
     fontsize=22
 
-    alpha=0.8
+    alpha2 = 0.3
+    alpha = 1.
     cmap = plt.cm.jet
 
     for coord,para_inds in zip(coords,paras_inds):
-        colors = iter(cmap(np.linspace(0,1,len(SNRs)+1)))
-        col = next(colors)
+        colors = iter(['#0173B2','#029E73','#DE8F05','#D55E00'])#iter(cmap(np.linspace(0,1,len(SNRs)+1)))
+        #col = next(colors)
         count+=1
         scs = []
         plt_labels=[]
         if snr_max:
             label=None
             if count==len(coords):
-                label=r'$\max(\{\rho^{max}_{0},...,\rho^{max}_{N}\})=$'+str(np.round(snr_maxv,2))
-            sc_snr = axes[coord[0],coord[1]].scatter(snr_dict[para_strs[para_inds[1]]], snr_dict[para_strs[para_inds[0]]], color='black', marker='o', lw=8., alpha=0.3, label=label)
+                label=r'$\max(\{\rho^{\regular{max}}_{0},...,\rho^{\regular{max}}_{N}\})=$'+str(np.round(snr_maxv,2))
+            sc_snr = axes[coord[0],coord[1]].scatter(snr_dict[para_strs[para_inds[1]]], snr_dict[para_strs[para_inds[0]]], color='black', marker='o', lw=8., alpha=alpha2, label=label)
         
         for SNR in SNRs:
             if count==len(coords):
@@ -155,7 +164,7 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
             axes[coord[0],coord[1]].set_yticks([])
         if snr_max:
             if count==len(coords):
-                label=r'$\max(\{\rho^{max}_{0},...,\rho^{max}_{N}\})=$'+str(np.round(snr_maxv,2))
+                label=r'$\max(\{\rho^{\regular{max}}_{0},...,\rho^{\regular{max}}_{N}\})=$'+str(np.round(snr_maxv,2))
                 plt_labels.append(label)
                 scs.append(sc_snr)
 
@@ -164,7 +173,9 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
         
     leg = fig.legend(scs, plt_labels, loc='upper right', fontsize=fontsize)
     leg.get_frame().set_linewidth(0.0)
-    leg.set_bbox_to_anchor((.85, .85))
+    leg.set_bbox_to_anchor((1, .9))
+    #leg.set_bbox_to_anchor((.95, .35))#leg.set_bbox_to_anchor((.85, .85))
+    
 
     for handle in leg.legendHandles:
         handle.set_sizes([size_max])
