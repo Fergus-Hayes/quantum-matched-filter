@@ -131,8 +131,9 @@ def main(infiles, outpath, noisefile=False, bank='bank', fontsize=28, ticksize=2
     cmap = plt.cm.jet
 
     for coord,para_inds in zip(coords,paras_inds):
-        colors = iter(['#0173B2','#029E73','#DE8F05','#D55E00'])#iter(cmap(np.linspace(0,1,len(SNRs)+1)))
-        #col = next(colors)
+        colors = iter(cmap(np.linspace(0,1,len(SNRs)+1)))
+        #colors = iter(['#0173B2','#029E73','#DE8F05','#D55E00'])#iter(cmap(np.linspace(0,1,len(SNRs)+1)))
+        col = next(colors)
         count+=1
         scs = []
         plt_labels=[]

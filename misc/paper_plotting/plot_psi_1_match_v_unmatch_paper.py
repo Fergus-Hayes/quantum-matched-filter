@@ -20,7 +20,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     label_match = r'$P(\regular{Match})$'#r'$\rho \geq \rho_{\regular{th}} (= 18)$'
     label_nmatch = r'1-$P(\regular{Match})$'#r'$\rho < \rho_{\regular{th}} (= 18)$'
     ylabel = r'Probability'
-    xlabel = r'$k$'
+    xlabel = r'Number of Grover operations'
     cmap = plt.cm.jet
 
     fig, axes = plt.subplots(nrows=1, ncols=1, figsize=figsize)#nrows=len(SNRs)//2, ncols=2, figsize=(2*figsize[0],len(SNRs)*figsize[1]//2))
@@ -52,7 +52,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
         k_t = ((np.pi/(2.*theta))-1.)/2.
 
         axes[i].annotate(text='', xy=(k_t,1.005), xytext=(1,1.005), arrowprops=dict(arrowstyle='<->', lw=1.5))
-        axes[i].annotate(text=r'$k_{t}$', xy=((k_t/2)-5,.95), fontsize=fontsize)
+        axes[i].annotate(text=r'$k$', xy=((k_t/2)-5,.95), fontsize=fontsize)
 
         axes[i].plot(norm*np.sum(np.abs(psi_matches)**2, axis=0), lw=2, label=label_match, color=col)
         axes[i].plot(norm*np.sum(np.abs(psi_nmatches)**2, axis=0), lw=2, label=label_nmatch, color=col, ls='--')

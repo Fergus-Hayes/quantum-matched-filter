@@ -17,8 +17,8 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     SNRs = np.array(SNRs)[snr_inds]
     infiles = np.array(infiles)[snr_inds]
 
-    ylabel = r'$P(k_{\regular{obs}}=k$)'
-    xlabel = r'$k$'
+    ylabel = r'$P(k_{\ast})$'
+    xlabel = r'$k_{\ast}$'
     cmap = plt.cm.jet
     lw=3
     ms=6

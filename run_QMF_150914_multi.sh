@@ -1,11 +1,11 @@
 #!/bin/bash
 
 LOC="${PWD}/runs"
-ENVLOC="/home/fergus/src/anaconda3/bin/activate"
+ENVLOC="/home/fergus.hayes/src/conda/anaconda3/bin/activate"
 ENV="QMF"
 
 M=17
-P=9
+P=11
 
 CORES=3
 

@@ -17,7 +17,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     SNRs = np.array(SNRs)[snr_inds]
     infiles = np.array(infiles)[snr_inds]
 
-    ylabel = r'$P(b_{\regular{obs}}=b)$'
+    ylabel = r'$P(b)$'
     xlabel = r'$b$'
     cmap = plt.cm.jet
     
@@ -62,7 +62,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
             ax2.axvline(b_t2, ymin=0., ymax=1., color=col, ls=':')
 
 
-    stretch = 60 #len(prob)//9
+    stretch = 110 #len(prob)//9
 
     ax.set_xlim(0., stretch)  # outliers only
     ax2.set_xlim(len(prob)-stretch, len(prob))  # most of the data
@@ -93,7 +93,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     ax2.tick_params(axis='both', labelsize=ticksize, right=False, labelright=False)
 
     #axes[1].tick_params(axis='both', labelsize=ticksize)
-    leg = fig.legend(fontsize=2*fontsize//3, bbox_to_anchor=[0.6, 0.8])#, loc='upper right')
+    leg = fig.legend(fontsize=2*fontsize//3, bbox_to_anchor=[0.44, 0.8])#, loc='upper right')
     leg.get_frame().set_linewidth(0.0)
     fig.savefig(outpath+'_'.join(infiles[-1].split('/')[-1].split('_')[:4])+'_snr_'+'_'.join(SNRs.astype(int).astype(str))+'_psi2_b_paper.png',bbox_inches='tight')
 

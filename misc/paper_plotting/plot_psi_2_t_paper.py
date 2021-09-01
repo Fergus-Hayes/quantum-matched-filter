@@ -17,15 +17,20 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
     SNRs = np.array(SNRs)[snr_inds]
     infiles = np.array(infiles)[snr_inds]
 
-    ylabel = r'$P(t_{\regular{obs}}=t)$'
-    xlabel = r'$t$'
+    ylabel = r'$P(r_{\ast})$'
+    xlabel = r'$r_{\ast}$'
     cmap = plt.cm.jet
     lw=3
     ms=6
     
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(figsize[0],figsize[1]))
 
-    colors = ['#bae4bc','#7bccc4','#43a2ca','#0868ac']#['orange','violet','blue','green']#iter(cmap(np.linspace(0,1,len(SNRs)+1)))
+    cmap = plt.cm.jet
+
+    colors = iter(cmap(np.linspace(0,1,len(SNRs)+1)))
+    col = next(colors)
+
+    #colors = ['#bae4bc','#7bccc4','#43a2ca','#0868ac']#['orange','violet','blue','green']#iter(cmap(np.linspace(0,1,len(SNRs)+1)))
     #col = next(colors)
 
     if noisefile:
@@ -50,7 +55,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
             ls = '--'
         else:
             label=r'$\rho_{\regular{thr}}$='+str(int(SNRs[i]))
-            col = colors[i]#next(colors)
+            col = next(colors)
             ls = '-'
 
         ax.plot(np.unique(matches), match_probs, color=col, marker='o', lw=0., ms=ms, label=label)

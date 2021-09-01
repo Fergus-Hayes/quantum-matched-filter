@@ -250,7 +250,7 @@ def QMF(Data, psd, M, P, tag='out', path='./', SNR_threshold=12., bankfunc=get_p
 
     # The estimated optimal number of Grover's applications can then be determined
     b = measurement[0]
-    if b!=0 or b!=P-1:
+    if b!=0:
         opt_p = int(np.round((P/(4*b))-0.5))
     else:
         opt_p = 1.
