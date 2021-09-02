@@ -24,7 +24,7 @@ def main(Mqubits, Pqubits, tag='out', path='./output/', SNR_threshold=12., bank=
 
     tag = str(M)+'_'+str(P)+'_'+str(SNR_threshold).replace('.','_')+'_'+tag
 
-    measurement, psi_opt, Nmatches = qmffn.QMF(Data, psd, M, P, tag=tag, path=path, SNR_threshold=SNR_threshold, bankfunc=bankfunc, table=True, save_states=True, load_states=True, dtype='float64', temp_file=template_file, spins=spins, cores=cores)
+    measurement, psi_opt, Nmatches = qmffn.QMF(Data, psd, M, P, tag=tag, path=path, SNR_threshold=SNR_threshold, bankfunc=bankfunc, table=True, save_states=True, load_states=False, dtype='float64', temp_file=template_file, spins=spins, cores=cores)
 
     print('b:',measurement)
     N_templates = int(np.round(M*np.sin(measurement*np.pi/P)**2))
