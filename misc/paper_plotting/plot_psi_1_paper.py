@@ -31,9 +31,7 @@ def main(infiles, outpath, noisefile=False, fontsize=28, ticksize=22, figsize=(1
 
         psi_1 = np.load(infile)
         P = psi_1.shape[1]
-        print(psi_1.shape)
         psi_1 = psi_1[np.argmax(np.sum(np.abs(psi_1)**2,axis=1))]
-        print(psi_1.shape)
 
         col = next(colors)
 

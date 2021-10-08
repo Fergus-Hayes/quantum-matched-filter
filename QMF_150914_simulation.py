@@ -8,7 +8,7 @@ import argparse, time, matplotlib, os
 
 np.random.seed(int(time.time()))
 
-def main(infile, outpath, fontsize=28, ticksize=22, figsize=(12,8), dtype='float64', all_trials=[1], runs=10000):
+def main(infile, outpath, tag, fontsize=28, ticksize=22, figsize=(12,8), dtype='float64', all_trials=[1], runs=1000):
 
     matplotlib.rcParams['mathtext.fontset'] = 'stix'
     matplotlib.rcParams['font.family'] = 'STIXGeneral'
@@ -53,26 +53,23 @@ def main(infile, outpath, fontsize=28, ticksize=22, figsize=(12,8), dtype='float
 
         SNR_threshold = float(infile.split('/')[-1].split('_')[4])
 
-        P = np.load(infile).shape[0]
-        M = np.load(infile).shape[1]
-        prob = np.sum(np.abs(np.load(infile))**2,axis=1)
-        prob = prob/np.sum(prob)
+        prob = np.load(infile)
 
-        N = 28.*4096
+        P = prob.shape[0]
+        M = prob.shape[1]
+        prob = np.sum(np.abs(prob)**2,axis=1)
+        prob = prob/np.sum(prob)
 
         w = np.where(snrs>=SNR_threshold,-1.,1.)/np.sqrt(M)
 
         run_ops = []
-        run_cost = []
         for run in tqdm(np.arange(runs)):
             switch = True
             count = 0
             ops = 0
-            cost = 0
             while switch:
                 count+=1
                 ops+=(P-1)
-                cost+=((P-1)*((N*np.log(N))+np.log(M)))
 
                 b_obs = 0
                 while b_obs==0:
@@ -90,8 +87,6 @@ def main(infile, outpath, fontsize=28, ticksize=22, figsize=(12,8), dtype='float
                     trials_ = int(P/k_obs)
                     for trial in np.arange(1,trials_+1):
                         ops+=k_obs
-                        cost+=(k_obs*((N*np.log(N))+np.log(M)))
-                        #print('Counting obs:',count, 'b_obs:',b_obs,'k_obs:',k_obs,'t_obs:',t_obs,'Template obs:',trial)
                         temp_ind = np.random.choice(M, 1, p=prob_k)
                         if snrs[temp_ind]>SNR_threshold:
                             switch=False
@@ -101,8 +96,6 @@ def main(infile, outpath, fontsize=28, ticksize=22, figsize=(12,8), dtype='float
                     trials_ = trials
                     for trial in np.arange(1,trials_+1):
                         ops+=k_obs
-                        cost+=(k_obs*((N*np.log(N))+np.log(M)))
-                        #print('Counting obs:',count, 'b_obs:',b_obs,'k_obs:',k_obs,'t_obs:',t_obs,'Template obs:',trial)
                         temp_ind = np.random.choice(M, 1, p=prob_k)
                         if snrs[temp_ind]>SNR_threshold:
                             switch=False
@@ -112,38 +105,26 @@ def main(infile, outpath, fontsize=28, ticksize=22, figsize=(12,8), dtype='float
                     switch2 = True
                     while switch2:
                         ops+=k_obs
-                        cost+=(k_obs*((N*np.log(N))+np.log(M)))
                         temp_ind = np.random.choice(M, 1, p=prob_k)
                         if snrs[temp_ind]>SNR_threshold:
                             switch=False
                             switch2=False
                             break
             
-            #print(count,trial)
             run_ops.append(ops)
-            run_cost.append(cost)
         
         run_ops = np.array(run_ops)
-        run_cost = np.array(run_cost)
         
-        #col = colors[i]#next(colors)
-        #ax.hist(run_ops, color=col, alpha=0.5, bins=33, label=labels[i])
-        #ax.axvline(np.mean(run_ops), color=col, ls=':', lw=3)
-        #ax.legend(fontsize=fontsize, framealpha=0.)
-        #fig.savefig(outpath+'simulation_3_scenarios.png', bbox_inches='tight') 
-        #print(run_cost.shape)
-        #print(run_ops.shape)
-        
-        np.save('output/simulation_out_'+str(i),run_ops)
-        np.save('output/simulation_out_cost_'+str(i),run_cost)
+        np.save(outpath+'simulation_out_'+str(i)+'_'+tag,run_ops)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage='', description="Perform one QMF on GW150914 given a template bank")
     parser.add_argument('--infile', help="", type=str, required=True)
     parser.add_argument('--outpath', help="", type=str, required=True)
+    parser.add_argument('--tag', help="", type=str, required=True)
     parser.add_argument('--trials', help="", type=int, nargs='+', required=True)
 
     opt = parser.parse_args()
 
-    main(opt.infile, opt.outpath, all_trials=opt.trials)
+    main(opt.infile, opt.outpath, opt.tag, all_trials=opt.trials)
