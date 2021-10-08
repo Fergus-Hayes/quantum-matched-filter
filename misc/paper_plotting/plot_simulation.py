@@ -38,9 +38,6 @@ def main(trialfile1, trialfile2, outpath, P, N, M, noisefile=False, fontsize=28,
 
     #ax.axvline((N*M*np.log(N))/SD_cost, color='black', lw=2, ls=':')
 
-    print(np.mean(trials1), np.mean(trials0))
-    print(M/SD_cost)
-
     ax.set_xlabel(r'Evaluations of $f$', fontsize=fontsize)
     ax.set_ylabel(r'Frequency', fontsize=fontsize)
     #ax.set_yscale('log')
