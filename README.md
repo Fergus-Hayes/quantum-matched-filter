@@ -1,6 +1,6 @@
 # quantum-matched-filter
 
-For details, see [A quantum algorithm for gravitational wave matched filtering](https://arxiv.org/abs/2109.01535).
+For details, see [A quantum algorithm for gravitational wave matched filtering](https://journals.aps.org/prresearch/abstract/10.1103/PhysRevResearch.4.023006).
 
 Matched filtering is a technique used in signal processing to detect signals using known template signal. It is used in gravitational wave data analysis to detect gravitational wave signals from astrophysical sources using a template bank of waveforms produced from numerical relativity simulations. Such template banks are often extremely large and comparing each template with the signal can be very computationally expensive if done classicaly. However a quantum approach of shifting through the template bank for matches can offer a significant speed-up. 
 
